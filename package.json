@@ -1,0 +1,29 @@
+{
+  "name": "real-estate-bookkeeping",
+  "version": "1.0.0",
+  "description": "Real estate portfolio bookkeeping dashboard",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build-mac": "electron-builder --mac",
+    "package": "electron-builder"
+  },
+  "build": {
+    "appId": "com.yourdomain.realestate-bookkeeping",
+    "productName": "RE Bookkeeping",
+    "directories": { "output": "dist" },
+    "mac": {
+      "category": "public.app-category.finance",
+      "target": "dmg"
+    },
+    "files": ["electron/**/*", "aggregator/**/*", "processors/**/*"]
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "author": "Josh Kravets",
+  "license": "UNLICENSED",
+  "private": true
+}

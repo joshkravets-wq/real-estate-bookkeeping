@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>10th Fairmount LLC – January 2026 (FINAL)</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#f5f5f3;padding:1.5rem}
+h1{font-size:18px;font-weight:500;margin-bottom:4px}
+.sub{font-size:13px;color:#666;margin-bottom:1.25rem}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.metric{background:#eeecea;border-radius:8px;padding:.8rem 1rem}
+.metric-label{font-size:12px;color:#777;margin-bottom:3px}
+.metric-value{font-size:22px;font-weight:500}
+.green{color:#2d6a2d}.amber{color:#8a5c00}
+.tabs{display:flex;gap:4px;border-bottom:1px solid #ddd;margin-bottom:1rem;flex-wrap:wrap}
+.tab{padding:7px 14px;font-size:13px;cursor:pointer;color:#666;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:500}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1rem;overflow-x:auto}
+.badge{display:inline-block;font-size:11px;padding:2px 6px;border-radius:4px;font-weight:500;white-space:nowrap}
+.b-matched{background:#e6f4e6;color:#1a5c1a}
+.b-review{background:#fef3e2;color:#7a4a00}
+.b-asset{background:#eeeafe;color:#3a2a8a}
+.b-income{background:#e2eefa;color:#1a3a6a}
+.b-expense{background:#f0efec;color:#3a3a3a}
+.b-liability{background:#fdeef6;color:#6a1a4a}
+.b-equity{background:#e2f5ee;color:#085041}
+.b-interco{background:#fdeef6;color:#6a1a4a}
+.tag{display:inline-block;font-size:11px;padding:1px 5px;border-radius:3px;background:#f0efec;color:#666;border:0.5px solid #ddd;margin-top:2px;white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+th{text-align:left;padding:6px 8px;color:#777;font-weight:500;border-bottom:1px solid #eee;font-size:11px;white-space:nowrap}
+td{padding:6px 8px;border-bottom:0.5px solid #eee;vertical-align:top;overflow:hidden;text-overflow:ellipsis}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf9}
+.ok{background:#e6f4e6;border:0.5px solid #86c486;border-radius:6px;padding:.75rem 1rem;font-size:13px;color:#1a5c1a;margin-bottom:1rem}
+.note{background:#f5f5f3;border:0.5px solid #ddd;border-radius:6px;padding:.75rem 1rem;font-size:12px;color:#555;margin-bottom:.75rem}
+.srow{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:0.5px solid #eee}
+.srow:last-child{border-bottom:none;font-weight:500}
+.ri{display:flex;align-items:center;font-size:13px;margin-bottom:7px}
+.rdot{width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-right:8px}
+.shdr{font-size:11px;font-weight:500;color:#777;text-transform:uppercase;letter-spacing:.04em;margin:1rem 0 .5rem;padding-bottom:4px;border-bottom:0.5px solid #eee}
+.ab{padding:5px 14px;font-size:13px;border-radius:6px;border:0.5px solid #ccc;cursor:pointer;background:#fff;color:#777;margin-right:8px;margin-bottom:8px}
+.ab.active{background:#eeecea;color:#1a1a1a;font-weight:500;border-color:#aaa}
+</style>
+</head>
+<body>
+<h1>10th Fairmount LLC – January 2026 <span style="font-size:13px;color:#2d6a2d;font-weight:400;margin-left:8px">&#10003; FINAL</span></h1>
+<div class="sub">Both accounts &middot; TD Bank #430-3139011 &middot; Penn Community #XXXXXXX3869</div>
+
+<div class="metrics">
+  <div class="metric"><div class="metric-label">Total transactions</div><div class="metric-value">15</div></div>
+  <div class="metric"><div class="metric-label">Categorized</div><div class="metric-value green">15</div></div>
+  <div class="metric"><div class="metric-label">Pending</div><div class="metric-value green">0</div></div>
+  <div class="metric"><div class="metric-label">Watchlist</div><div class="metric-value green">0</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="show('txns',this)">Transactions</button>
+  <button class="tab" onclick="show('loans',this)">Loan statements</button>
+  <button class="tab" onclick="show('notes',this)">Notes &amp; flags</button>
+  <button class="tab" onclick="show('qb',this)">QB journal entries</button>
+  <button class="tab" onclick="show('export',this)">Export</button>
+</div>
+
+<div id="tab-txns">
+<div style="margin-bottom:1rem">
+  <button class="ab active" onclick="filterAcct('all',this)">All (15)</button>
+  <button class="ab" onclick="filterAcct('penn',this)">Penn Community (11)</button>
+  <button class="ab" onclick="filterAcct('td',this)">TD Bank (4)</button>
+</div>
+<div class="card" style="overflow-x:auto">
+<table style="min-width:800px">
+  <colgroup><col style="width:45px"><col style="width:45px"><col style="width:185px"><col style="width:80px"><col style="width:85px"><col style="width:50px"><col style="width:185px"><col style="width:65px"></colgroup>
+  <thead><tr><th>Date</th><th>Acct</th><th>Description</th><th>Amount</th><th>QB type</th><th>Chk</th><th>QB account / class</th><th>Status</th></tr></thead>
+  <tbody id="tbody"></tbody>
+</table>
+</div>
+</div>
+
+<div id="tab-loans" style="display:none">
+  <div class="ok">Both loan accounts confirmed from January bank statements.</div>
+  <div class="shdr">1252 N 18th St &ndash; Mortgage #9000854235 &ndash; Jan 2026</div>
+  <div class="card">
+    <div class="srow"><span>Payment date</span><span>01-02-2026</span></div>
+    <div class="srow"><span>Total payment</span><span>$2,030.82</span></div>
+    <div class="srow"><span>Principal</span><span style="color:#6a1a4a;font-weight:500">$693.37</span></div>
+    <div class="srow"><span>Interest</span><span style="color:#8a1a1a;font-weight:500">$1,337.45</span></div>
+    <div class="srow"><span>Balance after payment</span><span>$338,426.43</span></div>
+    <div class="srow"><span>Interest rate</span><span>4.580%</span></div>
+    <div style="margin-top:.75rem;font-size:12px;color:#555;padding:.5rem;background:#f5f5f3;border-radius:6px">DR PCB Loan - 1252 N 18 St (4235) $693.37 &middot; DR Interest Expense / Class: 1252 N 18th St $1,337.45 &middot; CR Penn Community #3869 $2,030.82</div>
+  </div>
+  <div class="shdr">2925 Master St &ndash; Construction Loan #9001254757 &ndash; Jan 2026</div>
+  <div class="card">
+    <div class="srow"><span>Payment date</span><span>01-06-2026</span></div>
+    <div class="srow"><span>Payment amount (interest-only)</span><span>$274.63</span></div>
+    <div class="srow"><span>Interest rate</span><span>7.750%</span></div>
+    <div style="margin-top:.75rem;padding:.6rem;background:#eeeafe;border-radius:6px;font-size:12px;color:#3a2a8a"><strong>Capitalized:</strong> Per pre-stab policy, interest added to 2925 Master Street fixed asset. DR 2925 Master Street $274.63 &middot; CR Penn Community #3869</div>
+  </div>
+</div>
+
+<div id="tab-notes" style="display:none">
+  <div class="shdr">Transaction explanations</div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:4px">Check #134 &ndash; $2,150 (1/23) &ndash; Eleonora Larinese</div>
+    <div class="note">Confirmed payee: Eleonora Larinese (SSN 183-82-1294, 1 Teak Court Cherry Hill NJ 08003). Property work / maintenance payment expensed to Repairs &amp; Maintenance / Class: 1252 N 18th St. 1099-NEC required at year end. YTD 1099 tracker: $2,150.</div>
+    <div style="font-weight:500;margin-bottom:4px;margin-top:.75rem">G&amp;J Group &ndash; $2,000 + $1,500 (1/28)</div>
+    <div class="note">Two Penn Community withdrawals on 1/28: "Withdrawal Contractor payment from 10F" ($2,000) and "from 10thF" ($1,500). Both are G&amp;J Group (acct 5494) payments. 2925 Master St is the active pre-stab construction project in Jan 2026. Both capitalized. YTD G&amp;J Group (10th Fairmount): $3,500.</div>
+    <div style="font-weight:500;margin-bottom:4px;margin-top:.75rem">Foremost insurance $1,692 (1/9)</div>
+    <div class="note">FOREMOST BILL PAYMENT &ndash; EPM PYMT. Insurance for 1252 N 18th St (stabilized rental). DR Insurance / Class: 1252 N 18th St.</div>
+    <div style="font-weight:500;margin-bottom:4px;margin-top:.75rem">Capital contribution $5,000 (1/15) &ndash; TD Bank mobile deposit</div>
+    <div class="note">One mobile deposit on TD Bank. Cross-reference Capital Contributions sheet &mdash; if not JBK/KBJ Group = all 4 members contributed equally ($1,250 each). Check TD Bank transfer details to confirm originating member.</div>
+    <div style="font-weight:500;margin-bottom:4px;margin-top:.75rem">Stormwater &times; 3 on TD Bank (1/7)</div>
+    <div class="note">Three CITYOFPHILA charges $21.64 each on same date:<br>&bull; 1012 Fairmount Ave &rarr; DR 1012 FAIRMOUNT AVENUE (asset)<br>&bull; 1008R Fairmount &rarr; DR 1008R Fairmount (asset)<br>&bull; 1008 Fairmount (Veit LLC lot) &rarr; DR Due from Veit LLC (intercompany receivable &mdash; reimbursable when consolidation completes)</div>
+  </div>
+  <div class="shdr">Unit B tenant breakdown</div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:4px">1252 N 18th St Unit B – two tenants confirmed from RentRedi</div>
+    <div class="note">Unit B has two tenants paying separately:<br>
+    &bull; <strong>Cydney Crouse</strong> – $1,250/mo – paid on time 1/5 (bundled in $1,900 deposit)<br>
+    &bull; <strong>Courtney Cunningham</strong> – $650/mo – paid in two parts: $650 on 1/5 (on time) + $650 on 1/29 (late, due 1/1). This is her normal pattern of splitting payments.<br><br>
+    The $650 late RentRedi deposit on 1/29 is not a partial payment mystery — it is Courtney's standard second installment paid late. No follow-up needed.</div>
+  </div>
+</div>
+
+<div id="tab-qb" style="display:none">
+  <div class="ok">All January entries are final. No items require accountant review.</div>
+  <div class="shdr">Penn Community #3869 &ndash; January 2026</div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Mortgage payment (1/2)</div>
+    <table><thead><tr><th>Account</th><th style="width:85px">Debit</th><th style="width:85px">Credit</th><th style="width:110px">Class</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>PCB Loan - 1252 N 18 St (4235)</td><td>$693.37</td><td></td><td></td><td>Mortgage principal Jan</td></tr>
+      <tr><td>Interest Expense</td><td>$1,337.45</td><td></td><td>1252 N 18th St</td><td>Mortgage interest Jan</td></tr>
+      <tr><td style="color:#666">Penn Community #3869</td><td></td><td>$2,030.82</td><td></td><td></td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Construction loan interest &ndash; capitalized (1/6)</div>
+    <table><thead><tr><th>Account</th><th style="width:85px">Debit</th><th style="width:85px">Credit</th><th style="width:110px">Class</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>2925 Master Street</td><td>$274.63</td><td></td><td></td><td>Construction loan interest &ndash; capitalized</td></tr>
+      <tr><td style="color:#666">Penn Community #3869</td><td></td><td>$274.63</td><td></td><td></td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Rental income (1/5 ×2, 1/29)</div>
+    <table><thead><tr><th>Account</th><th style="width:85px">Debit</th><th style="width:85px">Credit</th><th style="width:110px">Class</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>Penn Community #3869</td><td>$4,260.00</td><td></td><td></td><td>Robin Eli $1,710 + RentRedi bundle $1,900 + Courtney late $650</td></tr>
+      <tr><td style="color:#666">Rental Income – Robin Eli (Unit A)</td><td></td><td>$1,710.00</td><td>1252 N 18th St</td><td>Direct P2P transfer 1/5</td></tr>
+      <tr><td style="color:#666">Rental Income – Cydney Crouse (Unit B)</td><td></td><td>$1,250.00</td><td>1252 N 18th St</td><td>RentRedi bundle 1/5</td></tr>
+      <tr><td style="color:#666">Rental Income – Courtney Cunningham (Unit B)</td><td></td><td>$650.00</td><td>1252 N 18th St</td><td>RentRedi bundle 1/5</td></tr>
+      <tr><td style="color:#666">Rental Income – Courtney Cunningham (Unit B)</td><td></td><td>$650.00</td><td>1252 N 18th St</td><td>Late Jan rent – RentRedi 1/29</td></tr>
+    </tbody></table>
+    <div style="font-size:12px;color:#555;margin-top:.5rem">Note: Courtney Cunningham pays $650/month in two installments. On-time portion bundled with Cydney Crouse on 1/5; second installment paid late on 1/29.</div>
+  </div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Insurance (1/9)</div>
+    <table><thead><tr><th>Account</th><th style="width:85px">Debit</th><th style="width:85px">Credit</th><th style="width:110px">Class</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>Insurance</td><td>$1,692.00</td><td></td><td>1252 N 18th St</td><td>Foremost &ndash; EPM PYMT</td></tr>
+      <tr><td style="color:#666">Penn Community #3869</td><td></td><td>$1,692.00</td><td></td><td></td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Water bills (1/9, 1/30)</div>
+    <table><thead><tr><th>Account</th><th style="width:85px">Debit</th><th style="width:85px">Credit</th><th style="width:110px">Class</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>Water</td><td>$21.64</td><td></td><td>1252 N 18th St</td><td>1/9</td></tr>
+      <tr><td>Water</td><td>$21.64</td><td></td><td>1252 N 18th St</td><td>1/30</td></tr>
+      <tr><td style="color:#666">Penn Community #3869</td><td></td><td>$43.28</td><td></td><td></td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">G&amp;J Group contractor payments &ndash; capitalized (1/28)</div>
+    <table><thead><tr><th>Account</th><th style="width:85px">Debit</th><th style="width:85px">Credit</th><th style="width:110px">Class</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>2925 Master Street</td><td>$2,000.00</td><td></td><td></td><td>G&amp;J Group &ndash; contractor payment</td></tr>
+      <tr><td>2925 Master Street</td><td>$1,500.00</td><td></td><td></td><td>G&amp;J Group &ndash; contractor payment</td></tr>
+      <tr><td style="color:#666">Penn Community #3869</td><td></td><td>$3,500.00</td><td></td><td></td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Check #134 &ndash; Eleonora Larinese (1/23)</div>
+    <table><thead><tr><th>Account</th><th style="width:85px">Debit</th><th style="width:85px">Credit</th><th style="width:110px">Class</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>Repairs &amp; Maintenance</td><td>$2,150.00</td><td></td><td>1252 N 18th St</td><td>Check 134 &ndash; Eleonora Larinese</td></tr>
+      <tr><td style="color:#666">Penn Community #3869</td><td></td><td>$2,150.00</td><td></td><td></td></tr>
+    </tbody></table>
+    <div style="font-size:12px;color:#555;margin-top:.5rem">1099-NEC: Eleonora Larinese &middot; SSN 183-82-1294 &middot; 1 Teak Court Cherry Hill NJ 08003 &middot; YTD $2,150</div>
+  </div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Capital contribution $5,000 (1/15)</div>
+    <table><thead><tr><th>Account</th><th style="width:85px">Debit</th><th style="width:85px">Credit</th><th style="width:110px">Class</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>TD Bank #430-3139011</td><td>$5,000.00</td><td></td><td></td><td>Mobile deposit 1/15</td></tr>
+      <tr><td style="color:#666">Steve Kravets Capital:Contribution</td><td></td><td>$1,250.00</td><td></td><td>Cross-ref sheet to confirm which member sent deposit</td></tr>
+      <tr><td style="color:#666">Josh Kravets Capital:Contribution</td><td></td><td>$1,250.00</td><td></td><td></td></tr>
+      <tr><td style="color:#666">Gene Kravets Capital:Contribution</td><td></td><td>$1,250.00</td><td></td><td></td></tr>
+      <tr><td style="color:#666">Boris Capital:Contribution</td><td></td><td>$1,250.00</td><td></td><td></td></tr>
+    </tbody></table>
+  </div>
+  <div class="shdr">TD Bank #430-3139011 &ndash; January 2026</div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Stormwater &times; 3 (1/7)</div>
+    <table><thead><tr><th>Account</th><th style="width:85px">Debit</th><th style="width:85px">Credit</th><th style="width:100px">Class</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>1012 FAIRMOUNT AVENUE</td><td>$21.64</td><td></td><td></td><td>Stormwater 1/7 &ndash; 10th Fairmount owns</td></tr>
+      <tr><td>1008R Fairmount</td><td>$21.64</td><td></td><td></td><td>Stormwater 1/7 &ndash; 10th Fairmount owns</td></tr>
+      <tr><td>Due from Veit LLC</td><td>$21.64</td><td></td><td></td><td>Stormwater 1/7 &ndash; 1008 Fairmount (Veit LLC) &ndash; reimbursable</td></tr>
+      <tr><td style="color:#666">TD Bank #430-3139011</td><td></td><td>$64.92</td><td></td><td></td></tr>
+    </tbody></table>
+  </div>
+</div>
+
+<div id="tab-export" style="display:none">
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:10px">January 2026 checklist</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">&#10003;</span>All 15 transactions categorized &mdash; 0 pending, 0 watchlist</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">&#10003;</span>Mortgage split confirmed: $693.37 principal / $1,337.45 interest &middot; balance $338,426.43</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">&#10003;</span>Construction loan $274.63 capitalized to 2925 Master Street</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">&#10003;</span>G&amp;J Group $3,500 ($2,000 + $1,500) capitalized to 2925 Master Street</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">&#10003;</span>Check #134 $2,150 &ndash; Eleonora Larinese &ndash; expensed 1252 N 18th St &ndash; 1099 tracked</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">&#10003;</span>Foremost insurance $1,692 &ndash; expense / Class: 1252 N 18th St</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">&#10003;</span>Rental income $4,260: Robin Eli $1,710 + Cydney Crouse $1,250 + Courtney Cunningham $650 (on time) + $650 (late)</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">&#10003;</span>Water 2&times; $21.64 &ndash; expense / Class: 1252 N 18th St</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">&#10003;</span>$5,000 capital contribution &rarr; split $1,250 &times; 4 members</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">&#10003;</span>TD stormwater &times; 3 &rarr; 1012 Fairmount / 1008R Fairmount / Due from Veit LLC</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">&#10003;</span>Penn ending balance: $4,856.30 &middot; TD ending balance: $9,772.44</div>
+    <br>
+    <button onclick="exportCSV()" style="font-size:13px;padding:7px 16px;border-radius:6px;border:0.5px solid #ccc;background:#fff;cursor:pointer">&#8681; Export CSV for QB import</button>
+  </div>
+</div>
+
+<script>
+const txns=[
+  {date:'1/2',acct:'Penn',desc:'Mortgage principal – 1252 N 18th St',detail:'PCB loan 9000854235 · stmt confirmed · $693.37 prin',amt:-693.37,type:'Liability',qb:'PCB Loan - 1252 N 18 St',cls:'',chk:'',st:'matched'},
+  {date:'1/2',acct:'Penn',desc:'Mortgage interest – 1252 N 18th St',detail:'PCB loan 9000854235 · stmt confirmed · $1,337.45 int',amt:-1337.45,type:'Expense',qb:'Interest Expense',cls:'1252 N 18th St',chk:'',st:'matched'},
+  {date:'1/5',acct:'Penn',desc:'Rent – Robin Eli (Unit A)',detail:'External Deposit ROBIN ELI – P2P',amt:1710,type:'Income',qb:'Rental Income',cls:'1252 N 18th St',chk:'',st:'matched'},
+  {date:'1/6',acct:'Penn',desc:'Construction loan – capitalized',detail:'Loan 9001254757 – 2925 Master St',amt:-274.63,type:'Asset',qb:'2925 Master Street',cls:'',chk:'',st:'matched'},
+  {date:'1/5',acct:'Penn',desc:'Rent – RentRedi $1,900 (bundled)',detail:'Cydney Crouse $1,250 + Courtney Cunningham $650 – Unit B',amt:1900,type:'Income',qb:'Rental Income',cls:'1252 N 18th St',chk:'',st:'matched'},
+  {date:'1/9',acct:'Penn',desc:'Foremost insurance $1,692',detail:'External Withdrawal FOREMOST – BILL PAYMENT EPM PYMT',amt:-1692,type:'Expense',qb:'Insurance',cls:'1252 N 18th St',chk:'',st:'matched'},
+  {date:'1/9',acct:'Penn',desc:'Water bill $21.64',detail:'CITYOFPHILA 215-685-6300 WATER',amt:-21.64,type:'Expense',qb:'Water',cls:'1252 N 18th St',chk:'',st:'matched'},
+  {date:'1/23',acct:'Penn',desc:'Check #134 – Eleonora Larinese',detail:'Property work / maintenance – 1099 tracked',amt:-2150,type:'Expense',qb:'Repairs & Maintenance',cls:'1252 N 18th St',chk:'134',st:'matched'},
+  {date:'1/28',acct:'Penn',desc:'G&J Group – contractor $2,000',detail:'Withdrawal Contractor payment from 10F',amt:-2000,type:'Asset',qb:'2925 Master Street',cls:'',chk:'',st:'matched'},
+  {date:'1/28',acct:'Penn',desc:'G&J Group – contractor $1,500',detail:'Withdrawal Contractor payment from 10thF',amt:-1500,type:'Asset',qb:'2925 Master Street',cls:'',chk:'',st:'matched'},
+  {date:'1/29',acct:'Penn',desc:'Rent – Courtney Cunningham $650 (late)',detail:'External Deposit RENTREDI.COM – Jan rent paid late (due 1/1, paid 1/27)',amt:650,type:'Income',qb:'Rental Income',cls:'1252 N 18th St',chk:'',st:'matched'},
+  {date:'1/30',acct:'Penn',desc:'Water bill $21.64',detail:'CITYOFPHILA 215-685-6300 WATER',amt:-21.64,type:'Expense',qb:'Water',cls:'1252 N 18th St',chk:'',st:'matched'},
+  {date:'1/7',acct:'TD',desc:'Stormwater – 1012 Fairmount',detail:'CITYOFPHILA WATER 2946795',amt:-21.64,type:'Asset',qb:'1012 FAIRMOUNT AVENUE',cls:'',chk:'',st:'matched'},
+  {date:'1/7',acct:'TD',desc:'Stormwater – 1008R Fairmount',detail:'CITYOFPHILA WATER 2946818',amt:-21.64,type:'Asset',qb:'1008R Fairmount',cls:'',chk:'',st:'matched'},
+  {date:'1/7',acct:'TD',desc:'Stormwater – 1008 Fairmount (Veit LLC)',detail:'CITYOFPHILA WATER 2946989 – intercompany reimbursable',amt:-21.64,type:'Interco',qb:'Due from Veit LLC',cls:'',chk:'',st:'matched'},
+  {date:'1/15',acct:'TD',desc:'Capital contribution $5,000',detail:'Mobile deposit – $1,250 each: Steve, Josh, Gene, Boris',amt:5000,type:'Equity',qb:'Steve Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+];
+
+const btypes={'Liability':'b-liability','Expense':'b-expense','Income':'b-income','Asset':'b-asset','Equity':'b-equity','Interco':'b-interco'};
+let cf='all';
+
+function render(){
+  const rows=txns.filter(t=>cf==='all'||t.acct.toLowerCase()===cf);
+  document.getElementById('tbody').innerHTML=rows.map(t=>`
+    <tr>
+      <td style="color:#777">${t.date}</td>
+      <td><span class="tag">${t.acct}</span></td>
+      <td><div style="font-weight:500;font-size:12px">${t.desc}</div><div class="tag">${t.detail}</div></td>
+      <td style="font-weight:500;color:${t.amt>0?'#2d6a2d':'#8a1a1a'};white-space:nowrap">${t.amt>0?'+':''}$${Math.abs(t.amt).toLocaleString('en-US',{minimumFractionDigits:2})}</td>
+      <td><span class="badge ${btypes[t.type]||'b-expense'}">${t.type}</span></td>
+      <td style="color:#777;font-size:11px">${t.chk||'—'}</td>
+      <td><div style="font-size:12px">${t.qb}</div>${t.cls?`<div class="tag">Class: ${t.cls}</div>`:''}</td>
+      <td><span class="badge ${t.st==='matched'?'b-matched':'b-review'}">${t.st==='matched'?'Ready':'Review'}</span></td>
+    </tr>`).join('');
+}
+
+function filterAcct(f,el){
+  cf=f;
+  document.querySelectorAll('.ab').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function show(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['txns','loans','notes','qb','export'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===name?'block':'none';
+  });
+}
+
+function exportCSV(){
+  const headers=['Date','Acct','Description','Detail','Amount','Type','Check#','QB Account','Class','Status'];
+  const rows=txns.map(t=>[t.date,t.acct,t.desc,t.detail,(t.amt>0?'+':'')+t.amt.toFixed(2),t.type,t.chk||'',t.qb,t.cls||'',t.st]);
+
+  const vendorHeaders=['','VENDOR / 1099 TRACKER','','','','','','','',''];
+  const vendorCols=['Vendor Name','EIN / SSN','Address','1099 Type','Jan 2026','Feb 2026','Mar 2026','YTD Total','Threshold Met?','Notes'];
+  const vendors=[
+    ['Eleonora Larinese','183-82-1294','1 Teak Court, Cherry Hill NJ 08003','1099-NEC','$2,150.00','','','$2,150.00','Yes (>$600)','Check #134 – property work 1252 N 18th St'],
+    ['G&J Group LLC','61-1570442','1363 Buttonwood Dr, Southampton PA 18966','1099-NEC','$3,500.00','','','$3,500.00','Yes (>$600)','Contractor payments – 2925 Master St capitalized'],
+  ];
+
+  const blank=['','','','','','','','','',''];
+  const allRows=[headers,...rows,blank,vendorHeaders,vendorCols,...vendors];
+  const csv=allRows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='10th_Fairmount_Jan2026_FINAL.csv';
+  a.click();
+}
+
+render();
+</script>
+</body>
+</html>

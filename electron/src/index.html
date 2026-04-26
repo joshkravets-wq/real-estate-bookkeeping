@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Real Estate Portfolio — 2026 Year-End Report</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:13px;color:#1a1a1a;background:#f5f5f3;padding:0}
+.header{background:#1a1a1a;color:#fff;padding:1.5rem 2rem;display:flex;justify-content:space-between;align-items:flex-end}
+.header h1{font-size:20px;font-weight:400;letter-spacing:-.01em}
+.header .meta{font-size:12px;color:#999;text-align:right;line-height:1.6}
+.nav{background:#fff;border-bottom:1px solid #e5e5e3;padding:0 2rem;display:flex;gap:0;overflow-x:auto;align-items:center}
+.nav-btn{padding:12px 18px;font-size:13px;cursor:pointer;color:#666;border-bottom:2px solid transparent;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none;border-bottom:2px solid transparent}
+.nav-btn.active{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:500}
+.content{padding:1.5rem 2rem;max-width:1400px}
+.section-title{font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid #e5e5e3}
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:1.5rem}
+.kpi{background:#fff;border:0.5px solid #ddd;border-radius:8px;padding:.9rem 1rem}
+.kpi-label{font-size:11px;color:#999;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-value{font-size:22px;font-weight:500;line-height:1}
+.kpi-sub{font-size:11px;color:#999;margin-top:3px}
+.green{color:#1a7a1a}.red{color:#8a1a1a}.amber{color:#7a5000}.blue{color:#1a3a8a}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:1.25rem;margin-bottom:1rem;overflow-x:auto}
+.card-title{font-size:12px;font-weight:600;color:#555;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:6px 10px;color:#999;font-weight:500;border-bottom:1px solid #eee;font-size:11px;white-space:nowrap}
+th.num{text-align:right}
+td{padding:6px 10px;border-bottom:0.5px solid #f0f0ee;vertical-align:top}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf9}
+.total-row td{font-weight:600;border-top:1px solid #ccc;background:#fafaf9}
+.subtotal-row td{font-weight:500;color:#555;background:#f9f9f7}
+.badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;font-weight:500}
+.b-stab{background:#e2f0fe;color:#1a3a7a}
+.b-prestab{background:#eeeafe;color:#3a2a8a}
+.b-sold{background:#f0efec;color:#666}
+.b-acq{background:#fff3e0;color:#7a4000}
+.b-ynec{background:#fdeef6;color:#6a1a4a}
+.b-ok{background:#e6f4e6;color:#1a5c1a}
+.b-warn{background:#fef3e2;color:#7a4a00}
+.llc-tag{display:inline-block;font-size:10px;padding:1px 5px;border-radius:3px;background:#f0efec;color:#555;border:0.5px solid #ddd;white-space:nowrap}
+.pos{color:#1a7a1a}
+.neg{color:#8a1a1a}
+.indent{padding-left:24px}
+.indent2{padding-left:40px}
+.divider{height:1px;background:#eee;margin:1rem 0}
+.alert{padding:.75rem 1rem;border-radius:6px;font-size:12px;margin-bottom:.75rem;display:flex;align-items:flex-start;gap:.5rem}
+.alert-warn{background:#fef3e2;border:0.5px solid #f5c842;color:#7a4a00}
+.alert-info{background:#e8f0fe;border:0.5px solid #aac4f5;color:#1a3a6a}
+.alert-ok{background:#e6f4e6;border:0.5px solid #86c486;color:#1a5c1a}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+.filter-row{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.filter-btn{padding:4px 12px;font-size:11px;border-radius:20px;border:0.5px solid #ddd;cursor:pointer;background:#fff;color:#666}
+.filter-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.two-col,.three-col{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="header" style="display:flex;justify-content:space-between;align-items:center;gap:1rem">
+  <div>
+    <h1>Real Estate Portfolio · 2026 Year-End Report</h1>
+    <div style="font-size:12px;color:#aaa;margin-top:4px">10th Fairmount LLC &nbsp;·&nbsp; GJ Holdings LLC &nbsp;·&nbsp; Jan–Mar 2026 (YTD)</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:6px"><button onclick="connectBank()" id="connect-bank-btn" style="font-size:12px;padding:7px 18px;border-radius:6px;border:1px solid #555;background:transparent;cursor:pointer;color:#fff;white-space:nowrap;font-weight:500">&#9889; Connect Banks</button><div id="bank-status" style="font-size:11px;color:#6ecf6e;text-align:center"></div></div><div class="meta">
+    Prepared by bookkeeping processor<br>
+    Period: January–March 2026<br>
+    Status: <span style="color:#6ecf6e">All transactions reviewed ✓</span>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="show('overview',this)">Portfolio Overview</button>
+  <button class="nav-btn" onclick="show('trial',this)">Trial Balance</button>
+  <button class="nav-btn" onclick="show('pnl',this)">Property P&amp;L</button>
+  <button class="nav-btn" onclick="show('capex',this)">CapEx Tracker</button>
+  <button class="nav-btn" onclick="show('loans',this)">Loan Summary</button>
+  <button class="nav-btn" onclick="show('interco',this)">Intercompany</button>
+  <button class="nav-btn" onclick="show('equity',this)">Equity &amp; Distributions</button>
+  <button class="nav-btn" onclick="show('vendors',this)">1099 Tracker</button>
+  <button class="nav-btn" onclick="show('txns',this)">All Transactions</button>
+</div>
+
+<div class="content">
+
+<!-- ═══════════════════════════════════════════════════════════ OVERVIEW -->
+<div id="tab-overview">
+  <div class="section-title">Portfolio Overview · Jan–Mar 2026</div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Total Rental Income</div><div class="kpi-value green">$62,985</div><div class="kpi-sub">Both LLCs</div></div>
+    <div class="kpi"><div class="kpi-label">Total Operating Expenses</div><div class="kpi-value red">$24,318</div><div class="kpi-sub">Stabilized properties</div></div>
+    <div class="kpi"><div class="kpi-label">Net Operating Income</div><div class="kpi-value green">$38,667</div><div class="kpi-sub">Stabilized only</div></div>
+    <div class="kpi"><div class="kpi-label">CapEx Invested</div><div class="kpi-value blue">$312,448</div><div class="kpi-sub">Pre-stab properties</div></div>
+    <div class="kpi"><div class="kpi-label">Gain on Sale</div><div class="kpi-value green">$89,846</div><div class="kpi-sub">2030 N Lawrence (net)</div></div>
+    <div class="kpi"><div class="kpi-label">Member Distributions</div><div class="kpi-value red">$167,876</div><div class="kpi-sub">All members, both LLCs</div></div>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <div class="section-title">Properties by Status</div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Property</th><th>LLC</th><th>Status</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>1252 N 18th St</td><td><span class="llc-tag">10th Fairmount</span></td><td><span class="badge b-stab">Stabilized</span></td><td>Rental duplex</td></tr>
+            <tr><td>2925 Master St</td><td><span class="llc-tag">10th Fairmount</span></td><td><span class="badge b-prestab">Pre-stab</span></td><td>Under construction</td></tr>
+            <tr><td>1012 Fairmount Ave</td><td><span class="llc-tag">10th Fairmount</span></td><td><span class="badge b-prestab">Pre-stab</span></td><td>Vacant lot</td></tr>
+            <tr><td>1008R Fairmount Ave</td><td><span class="llc-tag">10th Fairmount</span></td><td><span class="badge b-prestab">Pre-stab</span></td><td>Vacant lot</td></tr>
+            <tr><td>2030 N Lawrence St</td><td><span class="llc-tag">10th Fairmount</span></td><td><span class="badge b-sold">Sold 2/14</span></td><td>HUD OTA-13518-PA · Gain $89,846</td></tr>
+            <tr><td>314 W Norris St</td><td><span class="llc-tag">GJ Holdings</span></td><td><span class="badge b-stab">Stabilized</span></td><td>Rental duplex</td></tr>
+            <tr><td>1948 N Orianna St</td><td><span class="llc-tag">GJ Holdings</span></td><td><span class="badge b-stab">Stabilized</span></td><td>Single family rental</td></tr>
+            <tr><td>507 W Dauphin St</td><td><span class="llc-tag">GJ Holdings</span></td><td><span class="badge b-stab">Stabilized</span></td><td>Rental duplex · refi Jan 2026</td></tr>
+            <tr><td>5461 W Berks St</td><td><span class="llc-tag">GJ Holdings</span></td><td><span class="badge b-prestab">Pre-stab</span></td><td>Active construction</td></tr>
+            <tr><td>5746 Grays Ave</td><td><span class="llc-tag">GJ Holdings</span></td><td><span class="badge b-prestab">Pre-stab</span></td><td>Active construction</td></tr>
+            <tr><td>2415 N 4th St</td><td><span class="llc-tag">GJ Holdings</span></td><td><span class="badge b-prestab">Pre-stab</span></td><td>Vacant lot</td></tr>
+            <tr><td>2431 N 3rd St</td><td><span class="llc-tag">GJ Holdings</span></td><td><span class="badge b-prestab">Pre-stab</span></td><td>Vacant lot</td></tr>
+            <tr><td>2433 N 6th St</td><td><span class="llc-tag">GJ Holdings</span></td><td><span class="badge b-acq">Acquiring</span></td><td>Glenn Dawson situation</td></tr>
+            <tr><td>6541 Edmund St</td><td><span class="llc-tag">GJ Holdings</span></td><td><span class="badge b-prestab">Pre-stab</span></td><td>Occupied — eviction pending</td></tr>
+            <tr><td>7338 N 20th St</td><td><span class="llc-tag">GJ Holdings</span></td><td><span class="badge b-acq">Acquiring</span></td><td>50% acquired 2/11 · 50% pending</td></tr>
+            <tr><td>2428 N Fairhill St</td><td><span class="llc-tag">GJ Holdings</span></td><td><span class="badge b-acq">Acquiring</span></td><td>Recording fees paid</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="section-title">Open Items &amp; Flags</div>
+      <div class="alert alert-warn">⚠ GJ Holdings: $5,000 capital contribution missing — one member, Feb round. Confirm and collect.</div>
+      <div class="alert alert-warn">⚠ GJ Holdings: 2431 N 3rd RE tax $587 — being paid, watch April statement.</div>
+      <div class="alert alert-warn">⚠ GJ Holdings: 7338 N 20th St — second 50% purchase pending. Watch for ~$35k wire.</div>
+      <div class="alert alert-warn">⚠ GJ Holdings: W-9s not yet collected for 12 contractors. Required before year-end for 1099-NEC filing.</div>
+      <div class="alert alert-info">ℹ 6541 Edmund RE tax $1,954 paid by Cambria Group LLC in error. Due from Cambria Group LLC on GJ Holdings books.</div>
+      <div class="alert alert-ok">✓ 2030 N Lawrence St sale fully processed. Net gain on sale: $89,845.62 after post-closing costs ($30k SV Management + $4k violation).</div>
+      <div class="alert alert-ok">✓ 507 W Dauphin refi complete. New Fay Servicing loan $110,879.10. All member distributions recorded.</div>
+
+      <div class="section-title" style="margin-top:1rem">Capital Contributions YTD</div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Member</th><th class="num">10th Fairmount</th><th class="num">GJ Holdings</th><th class="num">Total</th></tr></thead>
+          <tbody>
+            <tr><td>Steve Kravets</td><td class="num">$5,000</td><td class="num">$55,000</td><td class="num">$60,000</td></tr>
+            <tr><td>Josh Kravets</td><td class="num">$5,000</td><td class="num">$55,000</td><td class="num">$60,000</td></tr>
+            <tr><td>Gene Kravets</td><td class="num">$5,000</td><td class="num">$55,000</td><td class="num">$60,000</td></tr>
+            <tr><td>Boris Boloborodov</td><td class="num">$5,000</td><td class="num">$52,000</td><td class="num amber">$57,000 ⚠</td></tr>
+            <tr class="total-row"><td>Total</td><td class="num">$20,000</td><td class="num">$217,000</td><td class="num">$237,000</td></tr>
+          </tbody>
+        </table>
+        <div style="font-size:11px;color:#999;margin-top:.5rem">⚠ Boris missing $5k from GJ Holdings Feb round. All others equal.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ TRIAL BALANCE -->
+<div id="tab-trial" style="display:none">
+  <div class="section-title">Trial Balance · Jan–Mar 2026 · Both LLCs Combined</div>
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="filterTB('all',this)">All accounts</button>
+    <button class="filter-btn" onclick="filterTB('10th',this)">10th Fairmount only</button>
+    <button class="filter-btn" onclick="filterTB('gj',this)">GJ Holdings only</button>
+  </div>
+  <div class="card">
+    <table id="tb-table">
+      <thead><tr><th>Account</th><th>Type</th><th>LLC</th><th class="num">Debit</th><th class="num">Credit</th><th class="num">Net Balance</th></tr></thead>
+      <tbody id="tb-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ PROPERTY P&L -->
+<div id="tab-pnl" style="display:none">
+  <div class="section-title">Property P&amp;L · Stabilized Properties · Jan–Mar 2026</div>
+  <div class="alert alert-info">ℹ Pre-stab properties have no P&L — all costs are capitalized to fixed assets. See CapEx Tracker tab for construction spending.</div>
+
+  <div class="three-col">
+    <!-- 1252 N 18th -->
+    <div class="card">
+      <div class="card-title">1252 N 18th St <span class="llc-tag">10th Fairmount</span></div>
+      <div class="srow2"><span>Rental Income</span><span class="pos">+$12,260</span></div>
+      <div class="divider"></div>
+      <div class="srow2"><span style="color:#999;font-size:11px">EXPENSES</span></div>
+      <div class="srow2"><span>Mortgage Interest</span><span class="neg">−$3,878</span></div>
+      <div class="srow2"><span>Insurance</span><span class="neg">−$1,692</span></div>
+      <div class="srow2"><span>Water</span><span class="neg">−$130</span></div>
+      <div class="srow2"><span>Gas</span><span class="neg">−$202</span></div>
+      <div class="srow2"><span>RE Taxes</span><span class="neg">−$2,164</span></div>
+      <div class="srow2"><span>Repairs &amp; Maint.</span><span class="neg">−$2,150</span></div>
+      <div class="divider"></div>
+      <div class="srow2" style="font-weight:600"><span>Net Operating Income</span><span class="pos">+$2,044</span></div>
+      <div style="font-size:11px;color:#999;margin-top:.5rem">Tenants: Robin Eli (Unit A) · Cydney Crouse + Courtney Cunningham (Unit B)</div>
+    </div>
+    <!-- 314 W Norris -->
+    <div class="card">
+      <div class="card-title">314 W Norris St <span class="llc-tag">GJ Holdings</span></div>
+      <div class="srow2"><span>Rental Income</span><span class="pos">+$16,025</span></div>
+      <div class="divider"></div>
+      <div class="srow2"><span style="color:#999;font-size:11px">EXPENSES</span></div>
+      <div class="srow2"><span>Mortgage Interest</span><span class="neg">−$3,641</span></div>
+      <div class="srow2"><span>Water</span><span class="neg">−$337</span></div>
+      <div class="srow2"><span>Gas</span><span class="neg">−$202</span></div>
+      <div class="srow2"><span>RE Taxes</span><span class="neg">−$1,652</span></div>
+      <div class="srow2"><span>Repairs &amp; Maint.</span><span class="neg">−$268</span></div>
+      <div class="divider"></div>
+      <div class="srow2" style="font-weight:600"><span>Net Operating Income</span><span class="pos">+$9,925</span></div>
+      <div style="font-size:11px;color:#999;margin-top:.5rem">Tenants: Candida Sanchez / Hasan Thomas (A) · Bempa Ashia (B)</div>
+    </div>
+    <!-- 1948 N Orianna -->
+    <div class="card">
+      <div class="card-title">1948 N Orianna St <span class="llc-tag">GJ Holdings</span></div>
+      <div class="srow2"><span>Rental Income</span><span class="pos">+$10,339</span></div>
+      <div class="divider"></div>
+      <div class="srow2"><span style="color:#999;font-size:11px">EXPENSES</span></div>
+      <div class="srow2"><span>Mortgage Interest</span><span class="neg">−$2,483</span></div>
+      <div class="srow2"><span>Water</span><span class="neg">−$194</span></div>
+      <div class="srow2"><span>Gas</span><span class="neg">−$202</span></div>
+      <div class="srow2"><span>RE Taxes</span><span class="neg">−$1,190</span></div>
+      <div class="divider"></div>
+      <div class="srow2" style="font-weight:600"><span>Net Operating Income</span><span class="pos">+$6,270</span></div>
+      <div style="font-size:11px;color:#999;margin-top:.5rem">Tenant: Jennifer Vanzandt (recurring late fees)</div>
+    </div>
+  </div>
+  <!-- 507 W Dauphin -->
+  <div class="card" style="max-width:420px">
+    <div class="card-title">507 W Dauphin St <span class="llc-tag">GJ Holdings</span></div>
+    <div class="srow2"><span>Rental Income</span><span class="pos">+$12,462</span></div>
+    <div class="divider"></div>
+    <div class="srow2"><span style="color:#999;font-size:11px">EXPENSES</span></div>
+    <div class="srow2"><span>Mortgage Interest</span><span class="neg">−$3,709</span></div>
+    <div class="srow2"><span>Water</span><span class="neg">−$405</span></div>
+    <div class="srow2"><span>Gas</span><span class="neg">−$202</span></div>
+    <div class="divider"></div>
+    <div class="srow2" style="font-weight:600"><span>Net Operating Income</span><span class="pos">+$8,146</span></div>
+    <div style="font-size:11px;color:#999;margin-top:.5rem">Tenants: Nia Hinds (A) · LeeAndra White Black (B) · Refi Jan 2026</div>
+  </div>
+
+  <div class="card" style="max-width:500px">
+    <div class="card-title">Portfolio NOI Summary</div>
+    <table>
+      <thead><tr><th>Property</th><th>LLC</th><th class="num">Income</th><th class="num">Expenses</th><th class="num">NOI</th></tr></thead>
+      <tbody>
+        <tr><td>1252 N 18th St</td><td><span class="llc-tag">10th Fairmount</span></td><td class="num pos">$12,260</td><td class="num neg">$10,216</td><td class="num pos">$2,044</td></tr>
+        <tr><td>314 W Norris St</td><td><span class="llc-tag">GJ Holdings</span></td><td class="num pos">$16,025</td><td class="num neg">$6,100</td><td class="num pos">$9,925</td></tr>
+        <tr><td>1948 N Orianna St</td><td><span class="llc-tag">GJ Holdings</span></td><td class="num pos">$10,339</td><td class="num neg">$4,069</td><td class="num pos">$6,270</td></tr>
+        <tr><td>507 W Dauphin St</td><td><span class="llc-tag">GJ Holdings</span></td><td class="num pos">$12,462</td><td class="num neg">$4,316</td><td class="num pos">$8,146</td></tr>
+        <tr class="total-row"><td colspan="2">Total Portfolio NOI</td><td class="num pos">$51,086</td><td class="num neg">$24,701</td><td class="num pos">$26,385</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ CAPEX -->
+<div id="tab-capex" style="display:none">
+  <div class="section-title">CapEx Tracker · Pre-Stab Properties · Jan–Mar 2026</div>
+  <div class="alert alert-info">ℹ All costs below are capitalized to fixed asset accounts per pre-stab policy. No P&L impact until property is stabilized or sold.</div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">5461 W Berks St <span class="llc-tag">GJ Holdings</span> <span class="badge b-prestab">Active Construction</span></div>
+      <table>
+        <thead><tr><th>Category</th><th class="num">Amount</th></tr></thead>
+        <tbody>
+          <tr><td>G&amp;J Group (contractor)</td><td class="num">$15,000</td></tr>
+          <tr><td>Andrii Pasichnyk (labor)</td><td class="num">$11,660</td></tr>
+          <tr><td>BSZ Group (heater install)</td><td class="num">$7,700</td></tr>
+          <tr><td>KAS Painting</td><td class="num">$3,650</td></tr>
+          <tr><td>Grande Choice (countertops)</td><td class="num">$4,265</td></tr>
+          <tr><td>Express Builders Inc</td><td class="num">$2,600</td></tr>
+          <tr><td>Alexoff Co (labor)</td><td class="num">$4,537</td></tr>
+          <tr><td>Piotr Keraz (labor)</td><td class="num">$4,100</td></tr>
+          <tr><td>Diamond State Insurance</td><td class="num">$2,176</td></tr>
+          <tr><td>PGW Gas</td><td class="num">$378</td></tr>
+          <tr><td>RE Tax 2026</td><td class="num">$3,092</td></tr>
+          <tr><td>Water (3 months)</td><td class="num">$100</td></tr>
+          <tr><td>PECO Electric</td><td class="num">$134</td></tr>
+          <tr><td>Gas bills (allocated)</td><td class="num">$208</td></tr>
+          <tr class="total-row"><td>Total CapEx YTD</td><td class="num blue">$59,600</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">5746 Grays Ave <span class="llc-tag">GJ Holdings</span> <span class="badge b-prestab">Active Construction</span></div>
+      <table>
+        <thead><tr><th>Category</th><th class="num">Amount</th></tr></thead>
+        <tbody>
+          <tr><td>G&amp;J Group (contractor)</td><td class="num">$58,000</td></tr>
+          <tr><td>Jupiter 91 Inc (rough-in)</td><td class="num">$8,000</td></tr>
+          <tr><td>Alexoff Co (labor)</td><td class="num">$5,760</td></tr>
+          <tr><td>Piotr Keraz (labor)</td><td class="num">$6,000</td></tr>
+          <tr><td>MSC LTD (kitchen &amp; vanity)</td><td class="num">$3,540</td></tr>
+          <tr><td>Star Builders Inc</td><td class="num">$1,530</td></tr>
+          <tr><td>Commons &amp; Common (legal)</td><td class="num">$1,435</td></tr>
+          <tr><td>American Modern (insurance)</td><td class="num">$29</td></tr>
+          <tr><td>RE Tax 2026</td><td class="num">$1,769</td></tr>
+          <tr><td>Water (3 months)</td><td class="num">$106</td></tr>
+          <tr><td>PECO Electric</td><td class="num">$134</td></tr>
+          <tr><td>Gas bills (allocated)</td><td class="num">$208</td></tr>
+          <tr><td>Transfer tax refund</td><td class="num neg">−$2,657</td></tr>
+          <tr class="total-row"><td>Total CapEx YTD</td><td class="num blue">$85,854</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">2925 Master St <span class="llc-tag">10th Fairmount</span> <span class="badge b-prestab">Active Construction</span></div>
+      <table>
+        <thead><tr><th>Category</th><th class="num">Amount</th></tr></thead>
+        <tbody>
+          <tr><td>G&amp;J Group (contractor)</td><td class="num">$3,500</td></tr>
+          <tr><td>Construction loan interest</td><td class="num">$2,599</td></tr>
+          <tr><td>Stormwater (3 months)</td><td class="num">$65</td></tr>
+          <tr class="total-row"><td>Total CapEx YTD</td><td class="num blue">$6,164</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">New Acquisitions <span class="llc-tag">GJ Holdings</span></div>
+      <table>
+        <thead><tr><th>Property</th><th>Category</th><th class="num">Amount</th></tr></thead>
+        <tbody>
+          <tr><td>7338 N 20th St</td><td>Purchase price (50%)</td><td class="num">$35,133</td></tr>
+          <tr><td>7338 N 20th St</td><td>Legal/recording (Joe Keenan)</td><td class="num">$275</td></tr>
+          <tr><td>2428 N Fairhill St</td><td>Josh reimb. (Glenn loan)</td><td class="num">$4,900</td></tr>
+          <tr><td>2428 N Fairhill St</td><td>Recording fee</td><td class="num">$249</td></tr>
+          <tr><td>2415 N 4th St</td><td>RE Tax 2026</td><td class="num">$574</td></tr>
+          <tr><td>2431 N 3rd St</td><td>Water (3 months)</td><td class="num">$65</td></tr>
+          <tr class="total-row"><td colspan="2">Total</td><td class="num blue">$41,196</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="max-width:500px">
+    <div class="card-title">CapEx Summary — All Pre-Stab Properties</div>
+    <table>
+      <thead><tr><th>Property</th><th>LLC</th><th class="num">YTD CapEx</th></tr></thead>
+      <tbody>
+        <tr><td>5461 W Berks St</td><td><span class="llc-tag">GJ Holdings</span></td><td class="num">$59,600</td></tr>
+        <tr><td>5746 Grays Ave</td><td><span class="llc-tag">GJ Holdings</span></td><td class="num">$85,854</td></tr>
+        <tr><td>New acquisitions</td><td><span class="llc-tag">GJ Holdings</span></td><td class="num">$41,196</td></tr>
+        <tr><td>2925 Master St</td><td><span class="llc-tag">10th Fairmount</span></td><td class="num">$6,164</td></tr>
+        <tr><td>1012 / 1008R Fairmount</td><td><span class="llc-tag">10th Fairmount</span></td><td class="num">$130</td></tr>
+        <tr class="total-row"><td colspan="2">Total CapEx Invested YTD</td><td class="num blue">$192,944</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ LOANS -->
+<div id="tab-loans" style="display:none">
+  <div class="section-title">Loan Summary · All Active Loans · Mar 2026 Balances</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Loan #</th><th>Property</th><th>LLC</th><th>Lender</th><th class="num">Rate</th><th class="num">Jan Payment</th><th class="num">Feb Payment</th><th class="num">Mar Payment</th><th class="num">Balance (Mar)</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>PCB 9000854235</td><td>1252 N 18th St</td><td><span class="llc-tag">10th Fairmount</span></td><td>Penn Community</td>
+          <td class="num">4.580%</td>
+          <td class="num">$2,030.82<br><span style="color:#999;font-size:10px">$693 prin</span></td>
+          <td class="num">$2,030.82<br><span style="color:#999;font-size:10px">$696 prin</span></td>
+          <td class="num">$2,030.82<br><span style="color:#999;font-size:10px">$828 prin</span></td>
+          <td class="num">$336,902.75</td>
+        </tr>
+        <tr>
+          <td>PCB 9001254757</td><td>2925 Master St</td><td><span class="llc-tag">10th Fairmount</span></td><td>Penn Community</td>
+          <td class="num">7.750%</td>
+          <td class="num">$274.63<br><span style="color:#999;font-size:10px">interest only</span></td>
+          <td class="num">$2,266.87<br><span style="color:#999;font-size:10px">interest only</span></td>
+          <td class="num">$2,049.44<br><span style="color:#999;font-size:10px">interest only</span></td>
+          <td class="num">~$340,000</td>
+        </tr>
+        <tr>
+          <td>PCB 9000829048</td><td>1948 N Orianna</td><td><span class="llc-tag">GJ Holdings</span></td><td>Penn Community</td>
+          <td class="num">6.200%</td>
+          <td class="num">$1,125.60<br><span style="color:#999;font-size:10px">$269 prin</span></td>
+          <td class="num">$1,125.60<br><span style="color:#999;font-size:10px">$270 prin</span></td>
+          <td class="num">$1,125.60<br><span style="color:#999;font-size:10px">$354 prin</span></td>
+          <td class="num">$159,551.99</td>
+        </tr>
+        <tr>
+          <td>PCB 9000798251</td><td>314 W Norris</td><td><span class="llc-tag">GJ Holdings</span></td><td>Penn Community</td>
+          <td class="num">4.350%</td>
+          <td class="num">$2,011.09<br><span style="color:#999;font-size:10px">$754 prin</span></td>
+          <td class="num">$2,011.09<br><span style="color:#999;font-size:10px">$757 prin</span></td>
+          <td class="num">$2,011.09<br><span style="color:#999;font-size:10px">$881 prin</span></td>
+          <td class="num">$333,127.84</td>
+        </tr>
+        <tr>
+          <td>Fay 0000426433</td><td>507 W Dauphin</td><td><span class="llc-tag">GJ Holdings</span></td><td>Fay Servicing</td>
+          <td class="num">5.900%</td>
+          <td class="num"><span style="color:#999;font-size:10px">New loan — no pmt</span></td>
+          <td class="num">$1,674.72<br><span style="color:#999;font-size:10px">$258 prin + $180 escrow</span></td>
+          <td class="num">$1,674.72<br><span style="color:#999;font-size:10px">$258 prin + $180 escrow</span></td>
+          <td class="num">$251,483.78</td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="4">Total Loan Balances</td>
+          <td></td><td></td><td></td><td></td>
+          <td class="num">$1,321,066</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card" style="max-width:420px">
+    <div class="card-title">YTD Interest Paid (Jan–Mar 2026)</div>
+    <table>
+      <thead><tr><th>Loan / Property</th><th>LLC</th><th class="num">YTD Interest</th><th>Treatment</th></tr></thead>
+      <tbody>
+        <tr><td>1252 N 18th St</td><td><span class="llc-tag">10th Fairmount</span></td><td class="num">$3,875</td><td>Expensed</td></tr>
+        <tr><td>2925 Master St</td><td><span class="llc-tag">10th Fairmount</span></td><td class="num">$4,591</td><td>Capitalized</td></tr>
+        <tr><td>1948 N Orianna</td><td><span class="llc-tag">GJ Holdings</span></td><td class="num">$2,483</td><td>Expensed</td></tr>
+        <tr><td>314 W Norris</td><td><span class="llc-tag">GJ Holdings</span></td><td class="num">$3,641</td><td>Expensed</td></tr>
+        <tr><td>507 W Dauphin</td><td><span class="llc-tag">GJ Holdings</span></td><td class="num">$2,473</td><td>Expensed</td></tr>
+        <tr class="total-row"><td colspan="2">Total</td><td class="num">$17,063</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ INTERCOMPANY -->
+<div id="tab-interco" style="display:none">
+  <div class="section-title">Intercompany Balances · Mar 2026</div>
+  <div class="alert alert-info">ℹ These are amounts owed between entities. They should net to zero across the portfolio when all LLCs are processed.</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>On books of</th><th>Account</th><th>Reason</th><th class="num">Balance</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="llc-tag">10th Fairmount</span></td>
+          <td>Due from Veit LLC</td>
+          <td>Stormwater at 1008 Fairmount Ave paid by 10th Fairmount — Veit LLC owns property</td>
+          <td class="num">$194.76</td>
+          <td><span class="badge b-warn">Pending consolidation</span></td>
+        </tr>
+        <tr>
+          <td><span class="llc-tag">10th Fairmount</span></td>
+          <td>Due from Phily Properties LLC</td>
+          <td>2026 RE tax at 1010 Fairmount Ave paid by 10th Fairmount — Phily Properties owns</td>
+          <td class="num">TBD</td>
+          <td><span class="badge b-warn">Confirm amount</span></td>
+        </tr>
+        <tr>
+          <td><span class="llc-tag">GJ Holdings</span></td>
+          <td>Due from Cambria Group LLC</td>
+          <td>6541 Edmund St RE tax $1,954 paid by Cambria Group — when Cambria reimburses GJ Holdings</td>
+          <td class="num">$1,954.00</td>
+          <td><span class="badge b-warn">Awaiting reimbursement</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="alert alert-warn">⚠ Veit LLC, Phily Properties LLC, and Cambria Group LLC have not yet been processed. Once processed, these intercompany balances should be reconciled and eliminated.</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ EQUITY -->
+<div id="tab-equity" style="display:none">
+  <div class="section-title">Member Equity &amp; Distributions · Jan–Mar 2026</div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">10th Fairmount LLC</div>
+      <table>
+        <thead><tr><th>Member</th><th class="num">Contributions</th><th class="num">Distributions</th><th class="num">Net</th></tr></thead>
+        <tbody>
+          <tr><td>Steve Kravets</td><td class="num pos">$5,000</td><td class="num neg">−$52,500</td><td class="num neg">−$47,500</td></tr>
+          <tr><td>Josh Kravets</td><td class="num pos">$5,000</td><td class="num">—</td><td class="num pos">$5,000</td></tr>
+          <tr><td>Gene Kravets</td><td class="num pos">$5,000</td><td class="num">—</td><td class="num pos">$5,000</td></tr>
+          <tr><td>Boris Boloborodov</td><td class="num pos">$5,000</td><td class="num">—</td><td class="num pos">$5,000</td></tr>
+          <tr class="total-row"><td>Total</td><td class="num pos">$20,000</td><td class="num neg">−$52,500</td><td class="num neg">−$32,500</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:11px;color:#999;margin-top:.5rem">Steve draw was Check #154 $52,500 (Mar 2026 — completing Feb distribution)</div>
+    </div>
+    <div class="card">
+      <div class="card-title">GJ Holdings LLC</div>
+      <table>
+        <thead><tr><th>Member</th><th class="num">Contributions</th><th class="num">Distributions</th><th class="num">Net</th></tr></thead>
+        <tbody>
+          <tr><td>Steve Kravets</td><td class="num pos">$55,000</td><td class="num neg">−$27,719</td><td class="num pos">$27,281</td></tr>
+          <tr><td>Josh Kravets</td><td class="num pos">$55,000</td><td class="num neg">−$27,719</td><td class="num pos">$27,281</td></tr>
+          <tr><td>Gene Kravets</td><td class="num pos">$55,000</td><td class="num neg">−$27,719</td><td class="num pos">$27,281</td></tr>
+          <tr><td>Boris Boloborodov</td><td class="num pos amber">$52,000 ⚠</td><td class="num neg">−$27,719</td><td class="num pos amber">$24,281 ⚠</td></tr>
+          <tr class="total-row"><td>Total</td><td class="num pos">$217,000</td><td class="num neg">−$110,876</td><td class="num pos">$106,124</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:11px;color:#999;margin-top:.5rem">All distributions from 507 W Dauphin refinance proceeds (Jan 2026). Boris missing $5k contribution.</div>
+    </div>
+  </div>
+
+  <div class="card" style="max-width:500px">
+    <div class="card-title">Combined Portfolio — All Members</div>
+    <table>
+      <thead><tr><th>Member</th><th class="num">Total Contributions</th><th class="num">Total Distributions</th><th class="num">Net Position</th></tr></thead>
+      <tbody>
+        <tr><td>Steve Kravets</td><td class="num pos">$60,000</td><td class="num neg">−$80,219</td><td class="num neg">−$20,219</td></tr>
+        <tr><td>Josh Kravets</td><td class="num pos">$60,000</td><td class="num neg">−$27,719</td><td class="num pos">$32,281</td></tr>
+        <tr><td>Gene Kravets</td><td class="num pos">$60,000</td><td class="num neg">−$27,719</td><td class="num pos">$32,281</td></tr>
+        <tr><td>Boris Boloborodov</td><td class="num pos amber">$57,000</td><td class="num neg">−$27,719</td><td class="num pos amber">$29,281</td></tr>
+        <tr class="total-row"><td>Total</td><td class="num pos">$237,000</td><td class="num neg">−$163,376</td><td class="num pos">$73,624</td></tr>
+      </tbody>
+    </table>
+    <div style="font-size:11px;color:#999;margin-top:.5rem">Note: Steve's net is negative due to the $52,500 draw in March completing his Feb distribution from the 2030 N Lawrence sale proceeds.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ 1099 -->
+<div id="tab-vendors" style="display:none">
+  <div class="section-title">1099-NEC Tracker · All LLCs · YTD Jan–Mar 2026</div>
+  <div class="alert alert-warn">⚠ W-9s not yet collected for most GJ Holdings contractors. Must be collected before December 31st to file 1099-NECs by January 31st deadline.</div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Vendor</th><th>LLC</th><th>EIN / SSN</th><th>Address</th>
+          <th class="num">Jan</th><th class="num">Feb</th><th class="num">Mar</th>
+          <th class="num">YTD Total</th><th>W-9?</th><th>1099 Required?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>G&amp;J Group LLC</strong></td><td><span class="llc-tag">GJ Holdings</span></td><td>61-1570442</td><td>1363 Buttonwood Dr, Southampton PA 18966</td><td class="num">$20,000</td><td class="num">$40,000</td><td class="num">$13,000</td><td class="num"><strong>$73,000</strong></td><td><span class="badge b-ok">✓ On file</span></td><td><span class="badge b-ynec">Yes</span></td></tr>
+        <tr><td><strong>Andrii Pasichnyk</strong></td><td><span class="llc-tag">GJ Holdings</span></td><td style="color:#c00">Collect W-9</td><td style="color:#c00">Collect W-9</td><td class="num">$3,300</td><td class="num">$4,180</td><td class="num">$4,180</td><td class="num"><strong>$11,660</strong></td><td><span class="badge b-warn">⚠ Missing</span></td><td><span class="badge b-ynec">Yes</span></td></tr>
+        <tr><td><strong>Alexoff Co</strong></td><td><span class="llc-tag">GJ Holdings</span></td><td style="color:#c00">Collect W-9</td><td style="color:#c00">Collect W-9</td><td class="num">$6,260</td><td class="num">$2,537</td><td class="num">$1,500</td><td class="num"><strong>$10,297</strong></td><td><span class="badge b-warn">⚠ Missing</span></td><td><span class="badge b-ynec">Yes</span></td></tr>
+        <tr><td><strong>Piotr Keraz</strong></td><td><span class="llc-tag">GJ Holdings</span></td><td style="color:#c00">Collect W-9</td><td style="color:#c00">Collect W-9</td><td class="num">$6,100</td><td class="num">$2,500</td><td class="num">$1,500</td><td class="num"><strong>$10,100</strong></td><td><span class="badge b-warn">⚠ Missing</span></td><td><span class="badge b-ynec">Yes</span></td></tr>
+        <tr><td><strong>Jupiter 91 Inc</strong></td><td><span class="llc-tag">GJ Holdings</span></td><td style="color:#c00">Collect W-9</td><td style="color:#c00">Collect W-9</td><td class="num">$4,000</td><td class="num">—</td><td class="num">$4,000</td><td class="num"><strong>$8,000</strong></td><td><span class="badge b-warn">⚠ Missing</span></td><td><span class="badge b-ynec">Yes</span></td></tr>
+        <tr><td><strong>BSZ Group</strong></td><td><span class="llc-tag">GJ Holdings</span></td><td style="color:#c00">Collect W-9</td><td style="color:#c00">Collect W-9</td><td class="num">$7,700</td><td class="num">—</td><td class="num">—</td><td class="num"><strong>$7,700</strong></td><td><span class="badge b-warn">⚠ Missing</span></td><td><span class="badge b-ynec">Yes</span></td></tr>
+        <tr><td><strong>Grande Choice</strong></td><td><span class="llc-tag">GJ Holdings</span></td><td style="color:#c00">Collect W-9</td><td style="color:#c00">Collect W-9</td><td class="num">—</td><td class="num">—</td><td class="num">$4,265</td><td class="num"><strong>$4,265</strong></td><td><span class="badge b-warn">⚠ Missing</span></td><td><span class="badge b-ynec">Yes</span></td></tr>
+        <tr><td><strong>Sole Construction</strong></td><td><span class="llc-tag">GJ Holdings</span></td><td style="color:#c00">Collect W-9</td><td style="color:#c00">Collect W-9</td><td class="num">$5,000</td><td class="num">—</td><td class="num">—</td><td class="num"><strong>$5,000</strong></td><td><span class="badge b-warn">⚠ Missing</span></td><td><span class="badge b-ynec">Yes</span></td></tr>
+        <tr><td><strong>MSC LTD</strong></td><td><span class="llc-tag">GJ Holdings</span></td><td style="color:#c00">Collect W-9</td><td style="color:#c00">Collect W-9</td><td class="num">$1,685</td><td class="num">$1,855</td><td class="num">—</td><td class="num"><strong>$3,540</strong></td><td><span class="badge b-warn">⚠ Missing</span></td><td><span class="badge b-ynec">Yes</span></td></tr>
+        <tr><td><strong>Express Builders Inc</strong></td><td><span class="llc-tag">GJ Holdings</span></td><td style="color:#c00">Collect W-9</td><td style="color:#c00">Collect W-9</td><td class="num">$2,600</td><td class="num">—</td><td class="num">—</td><td class="num"><strong>$2,600</strong></td><td><span class="badge b-warn">⚠ Missing</span></td><td><span class="badge b-ynec">Yes</span></td></tr>
+        <tr><td><strong>KAS Painting</strong></td><td><span class="llc-tag">GJ Holdings</span></td><td style="color:#c00">Collect W-9</td><td style="color:#c00">Collect W-9</td><td class="num">—</td><td class="num">$3,650</td><td class="num">—</td><td class="num"><strong>$3,650</strong></td><td><span class="badge b-warn">⚠ Missing</span></td><td><span class="badge b-ynec">Yes</span></td></tr>
+        <tr><td><strong>Diamond State Insurance</strong></td><td><span class="llc-tag">GJ Holdings</span></td><td style="color:#c00">Collect W-9</td><td style="color:#c00">Collect W-9</td><td class="num">—</td><td class="num">—</td><td class="num">$2,176</td><td class="num"><strong>$2,176</strong></td><td><span class="badge b-warn">⚠ Missing</span></td><td><span class="badge b-ynec">Yes</span></td></tr>
+        <tr><td><strong>Star Builders Inc</strong></td><td><span class="llc-tag">GJ Holdings</span></td><td style="color:#c00">Collect W-9</td><td style="color:#c00">Collect W-9</td><td class="num">$1,530</td><td class="num">—</td><td class="num">—</td><td class="num"><strong>$1,530</strong></td><td><span class="badge b-warn">⚠ Missing</span></td><td><span class="badge b-ynec">Yes</span></td></tr>
+        <tr><td><strong>Commons &amp; Common</strong></td><td><span class="llc-tag">GJ Holdings</span></td><td style="color:#c00">Collect W-9</td><td style="color:#c00">Collect W-9</td><td class="num">$1,435</td><td class="num">—</td><td class="num">—</td><td class="num"><strong>$1,435</strong></td><td><span class="badge b-warn">⚠ Missing</span></td><td><span class="badge b-ynec">Yes</span></td></tr>
+        <tr><td>Eleonora Larinese</td><td><span class="llc-tag">10th Fairmount</span></td><td>183-82-1294</td><td>1 Teak Court, Cherry Hill NJ 08003</td><td class="num">$2,150</td><td class="num">—</td><td class="num">—</td><td class="num"><strong>$2,150</strong></td><td><span class="badge b-ok">✓ On file</span></td><td><span class="badge b-ynec">Yes</span></td></tr>
+        <tr style="color:#999"><td>Joe Keenan</td><td><span class="llc-tag">GJ Holdings</span></td><td style="color:#c00">Collect W-9</td><td style="color:#c00">Collect W-9</td><td class="num">—</td><td class="num">$275</td><td class="num">—</td><td class="num">$275</td><td><span class="badge b-warn">⚠ Missing</span></td><td>No (&lt;$600)</td></tr>
+        <tr style="color:#999"><td>Lily Kravets</td><td><span class="llc-tag">GJ Holdings</span></td><td>—</td><td>—</td><td class="num">—</td><td class="num">—</td><td class="num">$268</td><td class="num">$268</td><td>N/A</td><td>No (&lt;$600)</td></tr>
+        <tr class="total-row"><td colspan="7"><strong>Total 1099-NEC payments YTD</strong></td><td class="num"><strong>$139,373</strong></td><td colspan="2"></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ ALL TRANSACTIONS -->
+<div id="tab-txns" style="display:none">
+  <div class="section-title">All Transactions · Both LLCs · Jan–Mar 2026</div>
+  <div class="filter-row" id="txn-filters">
+    <button class="filter-btn active" onclick="filterTxn('all',this)">All</button>
+    <button class="filter-btn" onclick="filterTxn('10th',this)">10th Fairmount</button>
+    <button class="filter-btn" onclick="filterTxn('gj',this)">GJ Holdings</button>
+    <button class="filter-btn" onclick="filterTxn('jan',this)">January</button>
+    <button class="filter-btn" onclick="filterTxn('feb',this)">February</button>
+    <button class="filter-btn" onclick="filterTxn('mar',this)">March</button>
+    <button class="filter-btn" onclick="filterTxn('income',this)">Income</button>
+    <button class="filter-btn" onclick="filterTxn('expense',this)">Expense</button>
+    <button class="filter-btn" onclick="filterTxn('asset',this)">Asset/CapEx</button>
+    <button class="filter-btn" onclick="filterTxn('equity',this)">Equity</button>
+    <button class="filter-btn" onclick="filterTxn('liability',this)">Liability</button>
+  </div>
+  <div class="card" style="overflow-x:auto">
+    <table style="min-width:900px">
+      <thead><tr><th>Date</th><th>LLC</th><th>Description</th><th>QB Account</th><th>Class</th><th>Type</th><th class="num">Amount</th></tr></thead>
+      <tbody id="txn-body"></tbody>
+    </table>
+  </div>
+  <div style="font-size:12px;color:#999;margin-top:.5rem" id="txn-count"></div>
+  <br>
+  <button onclick="exportAllCSV()" style="font-size:13px;padding:8px 18px;border-radius:6px;border:0.5px solid #ccc;background:#fff;cursor:pointer;margin-right:8px">⬇ Export All Transactions CSV</button>
+  <button onclick="exportTBCSV()" style="font-size:13px;padding:8px 18px;border-radius:6px;border:0.5px solid #ccc;background:#fff;cursor:pointer">⬇ Export Trial Balance CSV</button>
+</div>
+
+</div><!-- end content -->
+
+<style>
+.srow2{display:flex;justify-content:space-between;font-size:12px;padding:4px 0}
+</style>
+
+<script>
+// ═══════ TRANSACTION DATA ════════════════════════════════════════════════════
+const TXNS = [
+// 10TH FAIRMOUNT — JANUARY
+{llc:'10th',mo:'jan',date:'1/2',desc:'Mortgage principal — 1252 N 18th St',qb:'PCB Loan - 1252 N 18 St',cls:'',type:'Liability',amt:-693.37},
+{llc:'10th',mo:'jan',date:'1/2',desc:'Mortgage interest — 1252 N 18th St',qb:'Interest Expense',cls:'1252 N 18th St',type:'Expense',amt:-1337.45},
+{llc:'10th',mo:'jan',date:'1/2',desc:'Stormwater — 1012 Fairmount',qb:'1012 FAIRMOUNT AVENUE',cls:'',type:'Asset',amt:-21.64},
+{llc:'10th',mo:'jan',date:'1/2',desc:'Stormwater — 1008R Fairmount',qb:'1008R Fairmount',cls:'',type:'Asset',amt:-21.64},
+{llc:'10th',mo:'jan',date:'1/2',desc:'Stormwater — 1008 Fairmount (Veit LLC)',qb:'Due from Veit LLC',cls:'',type:'Interco',amt:-21.64},
+{llc:'10th',mo:'jan',date:'1/5',desc:'Rent — Robin Eli (Unit A)',qb:'Rental Income',cls:'1252 N 18th St',type:'Income',amt:1710},
+{llc:'10th',mo:'jan',date:'1/6',desc:'Construction loan interest — 2925 Master St',qb:'2925 Master Street',cls:'',type:'Asset',amt:-274.63},
+{llc:'10th',mo:'jan',date:'1/6',desc:'Rent — RentRedi $1,900 (Cydney $1,250 + Courtney $650)',qb:'Rental Income',cls:'1252 N 18th St',type:'Income',amt:1900},
+{llc:'10th',mo:'jan',date:'1/9',desc:'Foremost insurance',qb:'Insurance',cls:'1252 N 18th St',type:'Expense',amt:-1692},
+{llc:'10th',mo:'jan',date:'1/9',desc:'Water bill',qb:'Water',cls:'1252 N 18th St',type:'Expense',amt:-21.64},
+{llc:'10th',mo:'jan',date:'1/15',desc:'Capital contribution $5,000',qb:'Steve Kravets Capital:Contribution',cls:'',type:'Equity',amt:5000},
+{llc:'10th',mo:'jan',date:'1/23',desc:'Check #134 — Eleonora Larinese',qb:'Repairs & Maintenance',cls:'1252 N 18th St',type:'Expense',amt:-2150},
+{llc:'10th',mo:'jan',date:'1/28',desc:'G&J Group — contractor (2925 Master)',qb:'2925 Master Street',cls:'',type:'Asset',amt:-2000},
+{llc:'10th',mo:'jan',date:'1/28',desc:'G&J Group — contractor (2925 Master)',qb:'2925 Master Street',cls:'',type:'Asset',amt:-1500},
+{llc:'10th',mo:'jan',date:'1/29',desc:'Rent — Courtney Cunningham (late)',qb:'Rental Income',cls:'1252 N 18th St',type:'Income',amt:650},
+{llc:'10th',mo:'jan',date:'1/30',desc:'Water bill',qb:'Water',cls:'1252 N 18th St',type:'Expense',amt:-21.64},
+// 10TH FAIRMOUNT — FEBRUARY
+{llc:'10th',mo:'feb',date:'2/2',desc:'Mortgage principal — 1252 N 18th St',qb:'PCB Loan - 1252 N 18 St',cls:'',type:'Liability',amt:-696.02},
+{llc:'10th',mo:'feb',date:'2/2',desc:'Mortgage interest — 1252 N 18th St',qb:'Interest Expense',cls:'1252 N 18th St',type:'Expense',amt:-1334.80},
+{llc:'10th',mo:'feb',date:'2/2',desc:'Construction loan interest — 2925 Master',qb:'2925 Master Street',cls:'',type:'Asset',amt:-2266.87},
+{llc:'10th',mo:'feb',date:'2/4',desc:'Rent — Robin Eli',qb:'Rental Income',cls:'1252 N 18th St',type:'Income',amt:1710},
+{llc:'10th',mo:'feb',date:'2/4',desc:'Rent — RentRedi $1,900',qb:'Rental Income',cls:'1252 N 18th St',type:'Income',amt:1900},
+{llc:'10th',mo:'feb',date:'2/6',desc:'Stormwater — 1012 Fairmount',qb:'1012 FAIRMOUNT AVENUE',cls:'',type:'Asset',amt:-21.64},
+{llc:'10th',mo:'feb',date:'2/6',desc:'Stormwater — 1008R Fairmount',qb:'1008R Fairmount',cls:'',type:'Asset',amt:-21.64},
+{llc:'10th',mo:'feb',date:'2/6',desc:'Stormwater — 1008 Fairmount (Veit)',qb:'Due from Veit LLC',cls:'',type:'Interco',amt:-21.64},
+{llc:'10th',mo:'feb',date:'2/14',desc:'Sale proceeds — 2030 N Lawrence St',qb:'Penn Community #3869',cls:'',type:'Income',amt:240573.07},
+{llc:'10th',mo:'feb',date:'2/14',desc:'Payoff — Construction Loan 2030 N Lawrence',qb:'Construction Loan 2030 N Lawrence',cls:'',type:'Liability',amt:-231548.31},
+{llc:'10th',mo:'feb',date:'2/14',desc:'Gain on sale — 2030 N Lawrence St',qb:'Gain on Sale of 2030 N Lawrence St',cls:'',type:'Income',amt:123845.62},
+{llc:'10th',mo:'feb',date:'2/16',desc:'Capital contribution × 4 members $1,500 each',qb:'Steve Kravets Capital:Contribution',cls:'',type:'Equity',amt:6000},
+{llc:'10th',mo:'feb',date:'2/27',desc:'Distribution — Josh Kravets',qb:'Josh Kravets Capital:Draw',cls:'',type:'Equity',amt:-52500},
+{llc:'10th',mo:'feb',date:'2/27',desc:'Distribution — Gene Kravets',qb:'Gene Kravets Capital:Draws',cls:'',type:'Equity',amt:-52500},
+{llc:'10th',mo:'feb',date:'2/27',desc:'Distribution — Boris Boloborodov',qb:'Boris Capital:Draw',cls:'',type:'Equity',amt:-52500},
+{llc:'10th',mo:'feb',date:'2/27',desc:'Water bill',qb:'Water',cls:'1252 N 18th St',type:'Expense',amt:-21.64},
+{llc:'10th',mo:'feb',date:'2/27',desc:'RE tax — 1010 Fairmount (Phily Properties)',qb:'Due from Phily Properties LLC',cls:'',type:'Interco',amt:-580},
+{llc:'10th',mo:'feb',date:'2/27',desc:'Payoff refund — 2030 N Lawrence',qb:'Construction Loan 2030 N Lawrence',cls:'',type:'Liability',amt:495.50},
+// 10TH FAIRMOUNT — MARCH
+{llc:'10th',mo:'mar',date:'3/2',desc:'Mortgage principal — 1252 N 18th St',qb:'PCB Loan - 1252 N 18 St',cls:'',type:'Liability',amt:-827.66},
+{llc:'10th',mo:'mar',date:'3/2',desc:'Mortgage interest — 1252 N 18th St',qb:'Interest Expense',cls:'1252 N 18th St',type:'Expense',amt:-1203.16},
+{llc:'10th',mo:'mar',date:'3/2',desc:'Construction loan interest — 2925 Master',qb:'2925 Master Street',cls:'',type:'Asset',amt:-2049.44},
+{llc:'10th',mo:'mar',date:'3/2',desc:'Check #155 — SV Management fee',qb:'Gain on Sale of 2030 N Lawrence St',cls:'',type:'Expense',amt:-30000},
+{llc:'10th',mo:'mar',date:'3/3',desc:'Rent — Robin Eli',qb:'Rental Income',cls:'1252 N 18th St',type:'Income',amt:1710},
+{llc:'10th',mo:'mar',date:'3/3',desc:'Rent — RentRedi $1,900',qb:'Rental Income',cls:'1252 N 18th St',type:'Income',amt:1900},
+{llc:'10th',mo:'mar',date:'3/4',desc:'Capital contribution × 4 members $1,000 each',qb:'Steve Kravets Capital:Contribution',cls:'',type:'Equity',amt:4000},
+{llc:'10th',mo:'mar',date:'3/12',desc:'Stormwater — 1012 Fairmount',qb:'1012 FAIRMOUNT AVENUE',cls:'',type:'Asset',amt:-21.64},
+{llc:'10th',mo:'mar',date:'3/12',desc:'Stormwater — 1008R Fairmount',qb:'1008R Fairmount',cls:'',type:'Asset',amt:-21.64},
+{llc:'10th',mo:'mar',date:'3/12',desc:'Stormwater — 1008 Fairmount (Veit)',qb:'Due from Veit LLC',cls:'',type:'Interco',amt:-21.64},
+{llc:'10th',mo:'mar',date:'3/16',desc:'Check #157 — City violation',qb:'Gain on Sale of 2030 N Lawrence St',cls:'',type:'Expense',amt:-4000},
+{llc:'10th',mo:'mar',date:'3/23',desc:'RE tax — 1252 N 18th St',qb:'Taxes - Phila',cls:'1252 N 18th St',type:'Expense',amt:-2163.81},
+{llc:'10th',mo:'mar',date:'3/23',desc:'Distribution — Steve Kravets',qb:'Steve Kravets Capital:Draws',cls:'',type:'Equity',amt:-52500},
+{llc:'10th',mo:'mar',date:'3/30',desc:'Water bill',qb:'Water',cls:'1252 N 18th St',type:'Expense',amt:-21.64},
+// GJ HOLDINGS — JANUARY (selected key transactions)
+{llc:'gj',mo:'jan',date:'1/2',desc:'Loan principal — 1948 N Orianna',qb:'PCB Loan - 1948 N Orianna',cls:'',type:'Liability',amt:-269.00},
+{llc:'gj',mo:'jan',date:'1/2',desc:'Loan interest — 1948 N Orianna',qb:'Interest Expense',cls:'1948 N Orianna St',type:'Expense',amt:-856.60},
+{llc:'gj',mo:'jan',date:'1/2',desc:'Loan principal — 314 W Norris',qb:'PCB Loan - 314 W Norris',cls:'',type:'Liability',amt:-754.29},
+{llc:'gj',mo:'jan',date:'1/2',desc:'Loan interest — 314 W Norris',qb:'Interest Expense',cls:'314 W Norris St',type:'Expense',amt:-1256.80},
+{llc:'gj',mo:'jan',date:'1/2',desc:'Refi proceeds — 507 W Dauphin',qb:'Fay Loan - 507 W Dauphin',cls:'',type:'Liability',amt:110879.10},
+{llc:'gj',mo:'jan',date:'1/5',desc:'Rent — 314 W Norris / 507 W Dauphin',qb:'Rental Income',cls:'314 W Norris / 507 W Dauphin',type:'Income',amt:2562.90},
+{llc:'gj',mo:'jan',date:'1/7',desc:'Steve Kravets — refi distribution',qb:'Steve Kravets Capital:Draws',cls:'',type:'Equity',amt:-27719},
+{llc:'gj',mo:'jan',date:'1/8',desc:'Josh Kravets — refi distribution',qb:'Josh Kravets Capital:Draw',cls:'',type:'Equity',amt:-27719},
+{llc:'gj',mo:'jan',date:'1/12',desc:'G&J Group — contractor (Grays Ave)',qb:'5746 Grays Ave',cls:'',type:'Asset',amt:-10000},
+{llc:'gj',mo:'jan',date:'1/13',desc:'Gene Kravets — refi distribution',qb:'Gene Kravets Capital:Draws',cls:'',type:'Equity',amt:-27719},
+{llc:'gj',mo:'jan',date:'1/13',desc:'Transfer tax refund — 5746 Grays',qb:'5746 Grays Ave',cls:'',type:'Asset',amt:2657.03},
+{llc:'gj',mo:'jan',date:'1/14',desc:'Boris Boloborodov — refi distribution',qb:'Boris Capital:Draw',cls:'',type:'Equity',amt:-27719},
+{llc:'gj',mo:'jan',date:'1/14',desc:'Rent — 507 W Dauphin',qb:'Rental Income',cls:'507 W Dauphin St',type:'Income',amt:1100},
+{llc:'gj',mo:'jan',date:'1/15',desc:'G&J Group — contractor (Grays)',qb:'5746 Grays Ave',cls:'',type:'Asset',amt:-5000},
+{llc:'gj',mo:'jan',date:'1/20',desc:'G&J Group — contractor (Berks)',qb:'5461 W Berks St',cls:'',type:'Asset',amt:-5000},
+{llc:'gj',mo:'jan',date:'1/20',desc:'Capital contributions × 4 $5k each',qb:'Steve Kravets Capital:Contribution',cls:'',type:'Equity',amt:20000},
+{llc:'gj',mo:'jan',date:'1/21',desc:'Rent — 1948 N Orianna',qb:'Rental Income',cls:'1948 N Orianna St',type:'Income',amt:1889},
+{llc:'gj',mo:'jan',date:'1/22',desc:'Insurance refund — 507 W Dauphin',qb:'507 W Dauphin St',cls:'',type:'Asset',amt:823.80},
+{llc:'gj',mo:'jan',date:'1/27',desc:'Rent — 1948 N Orianna / 314 W Norris',qb:'Rental Income',cls:'Multiple',type:'Income',amt:1261},
+{llc:'gj',mo:'jan',date:'1/28',desc:'BSZ Group — heater install (Berks)',qb:'5461 W Berks St',cls:'',type:'Asset',amt:-7700},
+{llc:'gj',mo:'jan',date:'1/28',desc:'Multiple contractor checks — Berks/Grays',qb:'5461 W Berks St / 5746 Grays Ave',cls:'',type:'Asset',amt:-17340},
+{llc:'gj',mo:'jan',date:'1/30',desc:'Water bills × 5 properties',qb:'Water / Various Assets',cls:'',type:'Expense',amt:-193.46},
+// GJ HOLDINGS — FEBRUARY
+{llc:'gj',mo:'feb',date:'2/2',desc:'Loan payments × 2 + Fay Servicing',qb:'PCB Loan - 1948 N Orianna / PCB Loan - 314 W Norris / Fay Loan - 507 W Dauphin',cls:'',type:'Liability',amt:-4811.41},
+{llc:'gj',mo:'feb',date:'2/2',desc:'Loan interest × 3 properties',qb:'Interest Expense',cls:'Multiple',type:'Expense',amt:-3345.76},
+{llc:'gj',mo:'feb',date:'2/3',desc:'Rent — 314 W Norris / 507 W Dauphin',qb:'Rental Income',cls:'Multiple',type:'Income',amt:2825},
+{llc:'gj',mo:'feb',date:'2/9',desc:'Rent — 507 W Dauphin / 1948 N Orianna',qb:'Rental Income',cls:'Multiple',type:'Income',amt:3775},
+{llc:'gj',mo:'feb',date:'2/10',desc:'Capital contributions × 4 $18k each',qb:'Steve Kravets Capital:Contribution',cls:'',type:'Equity',amt:72000},
+{llc:'gj',mo:'feb',date:'2/11',desc:'Purchase — 7338 N 20th St (50%)',qb:'7338 N 20th St',cls:'',type:'Asset',amt:-35132.96},
+{llc:'gj',mo:'feb',date:'2/13',desc:'Multiple contractor checks — Berks/Grays',qb:'5461 W Berks St / 5746 Grays Ave',cls:'',type:'Asset',amt:-7262},
+{llc:'gj',mo:'feb',date:'2/17',desc:'Rent — 1948 N Orianna',qb:'Rental Income',cls:'1948 N Orianna St',type:'Income',amt:2250},
+{llc:'gj',mo:'feb',date:'2/19',desc:'G&J Group — contractor (Grays)',qb:'5746 Grays Ave',cls:'',type:'Asset',amt:-35000},
+{llc:'gj',mo:'feb',date:'2/26',desc:'Capital contributions Feb $2k + $5k rounds',qb:'Steve Kravets Capital:Contribution',cls:'',type:'Equity',amt:16000},
+{llc:'gj',mo:'feb',date:'2/27',desc:'Multiple contractor checks',qb:'5461 W Berks St / 5746 Grays Ave',cls:'',type:'Asset',amt:-3855},
+// GJ HOLDINGS — MARCH
+{llc:'gj',mo:'mar',date:'3/2',desc:'Loan payments × 3 + interest',qb:'PCB Loan - 1948 N Orianna / PCB Loan - 314 W Norris / Fay Loan - 507 W Dauphin',cls:'',type:'Liability',amt:-4811.41},
+{llc:'gj',mo:'mar',date:'3/2',desc:'Loan interest × 3 properties',qb:'Interest Expense',cls:'Multiple',type:'Expense',amt:-3137.78},
+{llc:'gj',mo:'mar',date:'3/3',desc:'Rent — multiple properties',qb:'Rental Income',cls:'Multiple',type:'Income',amt:5275},
+{llc:'gj',mo:'mar',date:'3/4',desc:'Capital contributions Boris $7k + other $2k',qb:'Boris Capital:Contribution',cls:'',type:'Equity',amt:9000},
+{llc:'gj',mo:'mar',date:'3/5',desc:'Jupiter 91 — Grays Ave',qb:'5746 Grays Ave',cls:'',type:'Asset',amt:-4000},
+{llc:'gj',mo:'mar',date:'3/6',desc:'Rent — 1948 N Orianna / 507 W Dauphin',qb:'Rental Income',cls:'Multiple',type:'Income',amt:3200},
+{llc:'gj',mo:'mar',date:'3/9',desc:'Rent — 314 W Norris',qb:'Rental Income',cls:'314 W Norris St',type:'Income',amt:1000},
+{llc:'gj',mo:'mar',date:'3/16',desc:'RE taxes × 5 properties',qb:'Taxes - Phila / Various Assets',cls:'Multiple',type:'Expense',amt:-8276.59},
+{llc:'gj',mo:'mar',date:'3/20',desc:'G&J Group — contractor (Grays)',qb:'5746 Grays Ave',cls:'',type:'Asset',amt:-8000},
+{llc:'gj',mo:'mar',date:'3/23',desc:'Capital contributions × 2 $10k each',qb:'Steve Kravets Capital:Contribution',cls:'',type:'Equity',amt:20000},
+{llc:'gj',mo:'mar',date:'3/25',desc:'G&J Group — contractor $5k (Grays)',qb:'5746 Grays Ave',cls:'',type:'Asset',amt:-5000},
+{llc:'gj',mo:'mar',date:'3/27',desc:'Grande Choice countertops + Andrii labor',qb:'5461 W Berks St',cls:'',type:'Asset',amt:-5145},
+{llc:'gj',mo:'mar',date:'3/17',desc:'Diamond State Insurance — Berks',qb:'5461 W Berks St',cls:'',type:'Asset',amt:-2176},
+];
+
+// ═══════ TRIAL BALANCE DATA ════════════════════════════════════════════════
+const TB = [
+  // ASSETS
+  {account:'Cash — Penn Community #3869',type:'Asset',llc:'10th',dr:0,cr:0,note:'Ending balance Mar 2026'},
+  {account:'Cash — Penn Community #3395',type:'Asset',llc:'gj',dr:15219.91,cr:0,note:'Ending balance Mar 2026'},
+  {account:'PCB Loan - 1252 N 18 St',type:'Liability',llc:'10th',dr:2217.05,cr:336902.75,note:'Payments Jan–Mar vs. balance'},
+  {account:'PCB Loan - 1948 N Orianna',type:'Liability',llc:'gj',dr:893.84,cr:159551.99,note:''},
+  {account:'PCB Loan - 314 W Norris',type:'Liability',llc:'gj',dr:2392.25,cr:333127.84,note:''},
+  {account:'Fay Loan - 507 W Dauphin',type:'Liability',llc:'gj',dr:516.44,cr:251483.78,note:'Refi proceeds netted'},
+  {account:'Construction Loan 2030 N Lawrence',type:'Liability',llc:'10th',dr:231548.31,cr:495.50,note:'Paid off at closing; refund received'},
+  {account:'1012 FAIRMOUNT AVENUE',type:'Asset',llc:'10th',dr:64.92,cr:0,note:'Stormwater × 3 months capitalized'},
+  {account:'1008R Fairmount',type:'Asset',llc:'10th',dr:64.92,cr:0,note:'Stormwater × 3 months capitalized'},
+  {account:'2925 Master Street',type:'Asset',llc:'10th',dr:8090.94,cr:0,note:'Construction loan int + G&J + stormwater'},
+  {account:'5461 W Berks St',type:'Asset',llc:'gj',dr:59600,cr:0,note:'All construction costs capitalized'},
+  {account:'5746 Grays Ave',type:'Asset',llc:'gj',dr:88511,cr:2657.03,note:'Construction costs less transfer tax refund'},
+  {account:'7338 N 20th St',type:'Asset',llc:'gj',dr:35407.96,cr:0,note:'50% purchase + legal fee'},
+  {account:'2428 N Fairhill St',type:'Asset',llc:'gj',dr:5148.75,cr:0,note:'Acquisition costs'},
+  {account:'2433 N 6th St',type:'Asset',llc:'gj',dr:0,cr:0,note:'No cash activity in period'},
+  {account:'2415 N 4th St',type:'Asset',llc:'gj',dr:638.84,cr:0,note:'RE tax + water'},
+  {account:'2431 N 3rd St',type:'Asset',llc:'gj',dr:64.92,cr:0,note:'Water'},
+  {account:'6541 Edmund St',type:'Asset',llc:'gj',dr:63,cr:0,note:'Register of Wills'},
+  {account:'507 W Dauphin St',type:'Asset',llc:'gj',dr:1904.80,cr:0,note:'Insurance refund + carpentry'},
+  {account:'Due from Veit LLC',type:'Asset',llc:'10th',dr:194.76,cr:0,note:'Stormwater paid on behalf of Veit LLC'},
+  {account:'Due from Phily Properties LLC',type:'Asset',llc:'10th',dr:580,cr:0,note:'RE tax paid on behalf'},
+  {account:'Due from Cambria Group LLC',type:'Asset',llc:'gj',dr:1954,cr:0,note:'6541 Edmund RE tax paid by Cambria'},
+  // INCOME
+  {account:'Rental Income',type:'Income',llc:'both',dr:0,cr:51086,note:'All stabilized properties'},
+  {account:'Gain on Sale of 2030 N Lawrence St',type:'Income',llc:'10th',dr:34000,cr:123845.62,note:'$123,846 gain less $30k SV Mgmt + $4k violation'},
+  // EXPENSES
+  {account:'Interest Expense',type:'Expense',llc:'both',dr:12463.59,cr:0,note:'All stabilized property loans'},
+  {account:'Insurance',type:'Expense',llc:'10th',dr:1692,cr:0,note:'Foremost — 1252 N 18th St'},
+  {account:'Water',type:'Expense',llc:'both',dr:1200,cr:0,note:'Stabilized properties only'},
+  {account:'Gas',type:'Expense',llc:'gj',dr:608,cr:0,note:'1252 N 18th St share'},
+  {account:'Taxes - Phila',type:'Expense',llc:'both',dr:5007.57,cr:0,note:'1252 N 18th + 1948 N Orianna + 314 W Norris'},
+  {account:'Repairs & Maintenance',type:'Expense',llc:'both',dr:2418,cr:0,note:'Eleonora Larinese + Lily Kravets'},
+  {account:'Supplies',type:'Expense',llc:'gj',dr:8.42,cr:0,note:'SuperValue — 2030 N Lawrence'},
+  // EQUITY
+  {account:'Steve Kravets Capital:Contribution',type:'Equity',llc:'both',dr:0,cr:80000,note:''},
+  {account:'Josh Kravets Capital:Contribution',type:'Equity',llc:'both',dr:0,cr:60000,note:''},
+  {account:'Gene Kravets Capital:Contribution',type:'Equity',llc:'both',dr:0,cr:60000,note:''},
+  {account:'Boris Capital:Contribution',type:'Equity',llc:'both',dr:0,cr:57000,note:'Missing $5k — Feb GJ round'},
+  {account:'Steve Kravets Capital:Draws',type:'Equity',llc:'both',dr:80219,cr:0,note:'Refi dist $27,719 + Mar draw $52,500'},
+  {account:'Josh Kravets Capital:Draw',type:'Equity',llc:'both',dr:80219,cr:0,note:''},
+  {account:'Gene Kravets Capital:Draws',type:'Equity',llc:'both',dr:80219,cr:0,note:''},
+  {account:'Boris Capital:Draw',type:'Equity',llc:'both',dr:27719,cr:0,note:'Refi distribution only'},
+];
+
+// ═══════ NAVIGATION ═══════════════════════════════════════════════════════════
+function show(name, el) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  ['overview','trial','pnl','capex','loans','interco','equity','vendors','txns'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===name ? 'block' : 'none';
+  });
+  if(name==='trial') renderTB('all');
+  if(name==='txns') renderTxns('all');
+}
+
+// ═══════ TRIAL BALANCE ════════════════════════════════════════════════════════
+let tbFilter = 'all';
+function filterTB(f, el) {
+  tbFilter = f;
+  document.querySelectorAll('#tab-trial .filter-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderTB(f);
+}
+function renderTB(f) {
+  const order = ['Asset','Liability','Income','Expense','Equity'];
+  const rows = TB.filter(r => f==='all' || (f==='10th'&&(r.llc==='10th'||r.llc==='both')) || (f==='gj'&&(r.llc==='gj'||r.llc==='both')));
+  let html = '';
+  let totalDr=0, totalCr=0;
+  order.forEach(type => {
+    const group = rows.filter(r=>r.type===type);
+    if(!group.length) return;
+    html += `<tr class="subtotal-row"><td colspan="6" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#999">${type}</td></tr>`;
+    group.forEach(r => {
+      const net = r.dr - r.cr;
+      totalDr += r.dr; totalCr += r.cr;
+      html += `<tr>
+        <td>${r.account}</td>
+        <td><span class="llc-tag">${r.llc==='both'?'Both':r.llc==='10th'?'10th Fairmount':'GJ Holdings'}</span></td>
+        <td><span class="badge" style="background:#f0f0ee;color:#555">${r.type}</span></td>
+        <td class="num">${r.dr>0?'$'+r.dr.toLocaleString('en-US',{minimumFractionDigits:2}):''}</td>
+        <td class="num">${r.cr>0?'$'+r.cr.toLocaleString('en-US',{minimumFractionDigits:2}):''}</td>
+        <td class="num ${net>=0?'':'neg'}">${net>=0?'+':''}$${Math.abs(net).toLocaleString('en-US',{minimumFractionDigits:2})}</td>
+      </tr>`;
+    });
+  });
+  html += `<tr class="total-row">
+    <td colspan="3"><strong>TOTALS</strong></td>
+    <td class="num"><strong>$${totalDr.toLocaleString('en-US',{minimumFractionDigits:2})}</strong></td>
+    <td class="num"><strong>$${totalCr.toLocaleString('en-US',{minimumFractionDigits:2})}</strong></td>
+    <td class="num"></td>
+  </tr>`;
+  document.getElementById('tb-body').innerHTML = html;
+}
+
+// ═══════ TRANSACTIONS ════════════════════════════════════════════════════════
+const typeColors = {
+  'Income':'b-income','Expense':'b-expense','Asset':'b-asset',
+  'Equity':'b-equity','Liability':'b-liability','Interco':'b-interco'
+};
+const typeMap = {Income:'b-income',Expense:'b-expense',Asset:'b-asset',Equity:'b-equity',Liability:'b-liability',Interco:'b-interco'};
+
+function filterTxn(f, el) {
+  document.querySelectorAll('#txn-filters .filter-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderTxns(f);
+}
+
+function renderTxns(f) {
+  let rows = TXNS;
+  if(f==='10th') rows=rows.filter(t=>t.llc==='10th');
+  else if(f==='gj') rows=rows.filter(t=>t.llc==='gj');
+  else if(f==='jan') rows=rows.filter(t=>t.mo==='jan');
+  else if(f==='feb') rows=rows.filter(t=>t.mo==='feb');
+  else if(f==='mar') rows=rows.filter(t=>t.mo==='mar');
+  else if(f==='income') rows=rows.filter(t=>t.type==='Income');
+  else if(f==='expense') rows=rows.filter(t=>t.type==='Expense');
+  else if(f==='asset') rows=rows.filter(t=>t.type==='Asset');
+  else if(f==='equity') rows=rows.filter(t=>t.type==='Equity');
+  else if(f==='liability') rows=rows.filter(t=>t.type==='Liability');
+
+  document.getElementById('txn-body').innerHTML = rows.map(t => `
+    <tr>
+      <td style="color:#999;white-space:nowrap">${t.date}</td>
+      <td><span class="llc-tag">${t.llc==='10th'?'10th Fairmount':'GJ Holdings'}</span></td>
+      <td style="font-size:12px">${t.desc}</td>
+      <td style="font-size:11px;color:#555">${t.qb}</td>
+      <td style="font-size:11px;color:#999">${t.cls||''}</td>
+      <td><span class="badge ${typeMap[t.type]||'b-expense'}">${t.type}</span></td>
+      <td class="num" style="font-weight:500;color:${t.amt>=0?'#1a7a1a':'#8a1a1a'};white-space:nowrap">
+        ${t.amt>=0?'+':''}$${Math.abs(t.amt).toLocaleString('en-US',{minimumFractionDigits:2})}
+      </td>
+    </tr>`).join('');
+  document.getElementById('txn-count').textContent = `Showing ${rows.length} of ${TXNS.length} transactions`;
+}
+
+// ═══════ EXPORTS ══════════════════════════════════════════════════════════════
+function exportAllCSV() {
+  const headers = ['Date','LLC','Month','Description','QB Account','Class','Type','Amount'];
+  const rows = TXNS.map(t => [
+    t.date, t.llc==='10th'?'10th Fairmount LLC':'GJ Holdings LLC', t.mo,
+    t.desc, t.qb, t.cls||'', t.type,
+    (t.amt>=0?'+':'')+t.amt.toFixed(2)
+  ]);
+  dl([headers,...rows], 'Portfolio_All_Transactions_JanMar2026.csv');
+}
+
+function exportTBCSV() {
+  const headers = ['Account','Type','LLC','Debit','Credit','Net Balance','Notes'];
+  const rows = TB.map(r => [
+    r.account, r.type, r.llc==='both'?'Both LLCs':r.llc==='10th'?'10th Fairmount LLC':'GJ Holdings LLC',
+    r.dr>0?r.dr.toFixed(2):'', r.cr>0?r.cr.toFixed(2):'',
+    (r.dr-r.cr>=0?'+':'')+(r.dr-r.cr).toFixed(2), r.note
+  ]);
+  dl([headers,...rows], 'Portfolio_Trial_Balance_Mar2026.csv');
+}
+
+function dl(rows, filename) {
+  const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = filename;
+  a.click();
+}
+
+// Init
+renderTxns('all');
+</script>
+</body>
+</html>

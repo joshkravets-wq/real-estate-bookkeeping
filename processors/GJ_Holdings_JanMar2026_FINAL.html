@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GJ Holdings LLC — Jan–Mar 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#f5f5f3;padding:1.5rem}
+h1{font-size:18px;font-weight:500;margin-bottom:4px}
+.sub{font-size:13px;color:#666;margin-bottom:1.25rem}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.25rem}
+.metric{background:#eeecea;border-radius:8px;padding:.8rem 1rem}
+.metric-label{font-size:12px;color:#777;margin-bottom:3px}
+.metric-value{font-size:20px;font-weight:500}
+.green{color:#2d6a2d}.amber{color:#8a5c00}
+.tabs{display:flex;gap:4px;border-bottom:1px solid #ddd;margin-bottom:1rem;flex-wrap:wrap}
+.tab{padding:7px 14px;font-size:13px;cursor:pointer;color:#666;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:500}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1rem;overflow-x:auto}
+.badge{display:inline-block;font-size:11px;padding:2px 6px;border-radius:4px;font-weight:500;white-space:nowrap}
+.b-matched{background:#e6f4e6;color:#1a5c1a}
+.b-review{background:#fef3e2;color:#7a4a00}
+.b-asset{background:#eeeafe;color:#3a2a8a}
+.b-income{background:#e2eefa;color:#1a3a6a}
+.b-expense{background:#f0efec;color:#3a3a3a}
+.b-liability{background:#fdeef6;color:#6a1a4a}
+.b-equity{background:#e2f5ee;color:#085041}
+.b-refi{background:#fff0e0;color:#7a3a00}
+.b-interco{background:#fdeef6;color:#6a1a4a}
+.tag{display:inline-block;font-size:11px;padding:1px 5px;border-radius:3px;background:#f0efec;color:#666;border:0.5px solid #ddd;margin-top:2px;white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+th{text-align:left;padding:6px 8px;color:#777;font-weight:500;border-bottom:1px solid #eee;font-size:11px}
+td{padding:6px 8px;border-bottom:0.5px solid #eee;vertical-align:top;word-wrap:break-word}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf9}
+.ok{background:#e6f4e6;border:0.5px solid #86c486;border-radius:6px;padding:.75rem 1rem;font-size:13px;color:#1a5c1a;margin-bottom:1rem}
+.warn{background:#fef3e2;border:0.5px solid #f5c842;border-radius:6px;padding:.75rem 1rem;font-size:13px;color:#7a4a00;margin-bottom:1rem}
+.info{background:#e8f0fe;border:0.5px solid #aac4f5;border-radius:6px;padding:.75rem 1rem;font-size:13px;color:#1a3a6a;margin-bottom:1rem}
+.note{background:#f5f5f3;border:0.5px solid #ddd;border-radius:6px;padding:.75rem 1rem;font-size:12px;color:#555;margin-bottom:.75rem}
+.srow{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:0.5px solid #eee}
+.srow:last-child{border-bottom:none;font-weight:500}
+.shdr{font-size:11px;font-weight:500;color:#777;text-transform:uppercase;letter-spacing:.04em;margin:1rem 0 .5rem;padding-bottom:4px;border-bottom:0.5px solid #eee}
+.ab{padding:5px 12px;font-size:12px;border-radius:6px;border:0.5px solid #ccc;cursor:pointer;background:#fff;color:#777;margin-right:6px;margin-bottom:6px}
+.ab.active{background:#eeecea;color:#1a1a1a;font-weight:500;border-color:#aaa}
+.ri{display:flex;align-items:flex-start;font-size:13px;margin-bottom:7px}
+.rdot{width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-right:8px;margin-top:1px}
+</style>
+</head>
+<body>
+<h1>GJ Holdings LLC — January–March 2026 <span style="font-size:13px;color:#2d6a2d;font-weight:400;margin-left:8px">✓ FINAL</span></h1>
+<div class="sub">Penn Community Bank #XXXXXXX3395 · Beginning balance $34,101.53 → Ending balance $15,219.91</div>
+
+<div class="metrics">
+  <div class="metric"><div class="metric-label">Total transactions</div><div class="metric-value">118</div></div>
+  <div class="metric"><div class="metric-label">Categorized</div><div class="metric-value green">116</div></div>
+  <div class="metric"><div class="metric-label">Pending</div><div class="metric-value amber">2</div></div>
+  <div class="metric"><div class="metric-label">Properties</div><div class="metric-value">11</div></div>
+  <div class="metric"><div class="metric-label">Active loans</div><div class="metric-value">3</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="show('txns',this)">Transactions</button>
+  <button class="tab" onclick="show('loans',this)">Loans</button>
+  <button class="tab" onclick="show('refi',this)">Dauphin Refi</button>
+  <button class="tab" onclick="show('rent',this)">Rent Detail</button>
+  <button class="tab" onclick="show('props',this)">Properties</button>
+  <button class="tab" onclick="show('contribs',this)">Contributions</button>
+  <button class="tab" onclick="show('vendors',this)">Vendors/1099</button>
+  <button class="tab" onclick="show('notes',this)">Notes & Flags</button>
+  <button class="tab" onclick="show('export',this)">Export</button>
+</div>
+
+<!-- TRANSACTIONS -->
+<div id="tab-txns">
+<div style="margin-bottom:1rem;display:flex;flex-wrap:wrap">
+  <button class="ab active" onclick="filterMonth('all',this)">All (118)</button>
+  <button class="ab" onclick="filterMonth('jan',this)">January</button>
+  <button class="ab" onclick="filterMonth('feb',this)">February</button>
+  <button class="ab" onclick="filterMonth('mar',this)">March</button>
+</div>
+<div class="card" style="overflow-x:auto">
+<table style="min-width:950px">
+  <colgroup><col style="width:45px"><col style="width:40px"><col style="width:195px"><col style="width:85px"><col style="width:85px"><col style="width:70px"><col style="width:195px"><col style="width:65px"></colgroup>
+  <thead><tr><th>Date</th><th>Mo</th><th>Description / Payee</th><th>Amount</th><th>QB type</th><th>Check#</th><th>QB account → class</th><th>Status</th></tr></thead>
+  <tbody id="tbody"></tbody>
+</table>
+</div>
+</div>
+
+<!-- LOANS -->
+<div id="tab-loans" style="display:none">
+  <div class="ok">All three loan splits confirmed from statements for all three months.</div>
+  <div class="shdr">PCB #9000829048 — 1948 N Orianna St — 6.200%</div>
+  <div class="card">
+    <table><thead><tr><th>Month</th><th>Total</th><th>Principal</th><th>Interest</th><th>Balance after</th></tr></thead>
+    <tbody>
+      <tr><td>Jan (paid 1/2)</td><td>$1,125.60</td><td style="color:#6a1a4a">$269.00</td><td style="color:#8a1a1a">$856.60</td><td>$160,176.83</td></tr>
+      <tr><td>Feb (paid 2/2)</td><td>$1,125.60</td><td style="color:#6a1a4a">$270.39</td><td style="color:#8a1a1a">$855.21</td><td>$159,906.44</td></tr>
+      <tr><td>Mar (paid 3/2)</td><td>$1,125.60</td><td style="color:#6a1a4a">$354.45</td><td style="color:#8a1a1a">$771.15</td><td>$159,551.99</td></tr>
+    </tbody></table>
+    <div class="note" style="margin-top:.75rem">DR PCB Loan 9000829048 (principal) · DR Interest Expense / Class: 1948 N Orianna St · CR Penn Community #3395</div>
+  </div>
+  <div class="shdr">PCB #9000798251 — 314 W Norris St — 4.350%</div>
+  <div class="card">
+    <table><thead><tr><th>Month</th><th>Total</th><th>Principal</th><th>Interest</th><th>Balance after</th></tr></thead>
+    <tbody>
+      <tr><td>Jan (paid 1/2)</td><td>$2,011.09</td><td style="color:#6a1a4a">$754.29</td><td style="color:#8a1a1a">$1,256.80</td><td>$334,765.80</td></tr>
+      <tr><td>Feb (paid 2/2)</td><td>$2,011.09</td><td style="color:#6a1a4a">$757.02</td><td style="color:#8a1a1a">$1,254.07</td><td>$334,008.78</td></tr>
+      <tr><td>Mar (paid 3/2)</td><td>$2,011.09</td><td style="color:#6a1a4a">$880.94</td><td style="color:#8a1a1a">$1,130.15</td><td>$333,127.84</td></tr>
+    </tbody></table>
+    <div class="note" style="margin-top:.75rem">DR PCB Loan 9000798251 (principal) · DR Interest Expense / Class: 314 W Norris St · CR Penn Community #3395</div>
+  </div>
+  <div class="shdr">Fay Servicing #0000426433 — 507 W Dauphin St — 5.900% (new — starts Feb)</div>
+  <div class="card">
+    <table><thead><tr><th>Month</th><th>Total</th><th>Principal</th><th>Interest</th><th>Escrow</th><th>Balance after</th></tr></thead>
+    <tbody>
+      <tr><td>January</td><td colspan="5" style="color:#777;font-style:italic">No payment — loan originated this month</td></tr>
+      <tr><td>Feb (paid 2/2)</td><td>$1,674.72</td><td style="color:#6a1a4a">$258.22</td><td style="color:#8a1a1a">$1,236.48</td><td>$180.02</td><td>$251,742.00</td></tr>
+      <tr><td>Mar (paid 3/2)</td><td>$1,674.72</td><td style="color:#6a1a4a">$258.22</td><td style="color:#8a1a1a">$1,236.48</td><td>$180.02</td><td>$251,483.78</td></tr>
+    </tbody></table>
+    <div class="note" style="margin-top:.75rem">DR Fay Loan 0000426433 (principal) · DR Interest Expense / Class: 507 W Dauphin St · DR Escrow - 507 W Dauphin (taxes/insurance) · CR Penn Community #3395</div>
+  </div>
+</div>
+
+<!-- REFI -->
+<div id="tab-refi" style="display:none">
+  <div class="info">507 W Dauphin St refinanced January 2026. New loan: Fay Servicing #0000426433 at 5.900%.</div>
+  <div class="card">
+    <div class="shdr">Proceeds</div>
+    <div class="srow"><span>Wire deposit 1/2</span><span style="color:#2d6a2d">+$110,879.10</span></div>
+    <div class="srow"><span>CR: Fay Servicing Loan #0000426433</span><span>$110,879.10</span></div>
+  </div>
+  <div class="card">
+    <div class="shdr">Member distributions — 4× $27,719 ($3.10 rounding — immaterial)</div>
+    <table><thead><tr><th>Check</th><th>Date</th><th>Member</th><th>Amount</th><th>QB account</th></tr></thead>
+    <tbody>
+      <tr><td>1211</td><td>1/7</td><td>Steven Kravets</td><td>$27,719.00</td><td>Steve Kravets Capital:Draws</td></tr>
+      <tr><td>1177</td><td>1/8</td><td>Josh Kravets</td><td>$27,719.00</td><td>Josh Kravets Capital:Draw</td></tr>
+      <tr><td>1032</td><td>1/13</td><td>Gene Kravets</td><td>$27,719.00</td><td>Gene Kravets Capital:Draws</td></tr>
+      <tr><td>1147</td><td>1/14</td><td>Boris Boloborodov</td><td>$27,719.00</td><td>Boris Capital:Draw</td></tr>
+    </tbody></table>
+  </div>
+</div>
+
+<!-- RENT DETAIL -->
+<div id="tab-rent" style="display:none">
+  <div class="ok">All RentRedi deposits confirmed from RentRedi CSV (account xxxx3395). Each bank deposit is broken out by tenant below.</div>
+  <div class="shdr">January</div>
+  <div class="card">
+    <table><thead><tr><th>Bank deposit date</th><th>Bank amount</th><th>Property</th><th>Unit</th><th>Tenant</th><th>Rent amt</th></tr></thead>
+    <tbody>
+      <tr><td>1/5 (in Jan $2,562.90)</td><td rowspan="2">$2,562.90</td><td>314 W Norris St</td><td>B</td><td>Bempa Ashia</td><td>$1,825.00</td></tr>
+      <tr><td></td><td>507 W Dauphin St</td><td>B</td><td>LeeAndra White Black</td><td>$737.90 (prorated)</td></tr>
+      <tr><td>1/15 $1,100</td><td>$1,100.00</td><td>507 W Dauphin St</td><td>B</td><td>LeeAndra White Black</td><td>$1,100.00</td></tr>
+      <tr><td>1/21 $1,889</td><td>$1,889.00</td><td>1948 N Orianna St</td><td>Main</td><td>Jennifer Vanzandt</td><td>$1,889.00 (rent + late fee)</td></tr>
+      <tr><td>1/26 $100</td><td>$100.00</td><td>1948 N Orianna St</td><td>Main</td><td>Jennifer Vanzandt</td><td>$100.00 (late fee)</td></tr>
+      <tr><td>1/27 $1,261 (split)</td><td rowspan="2">$1,261.00</td><td>1948 N Orianna St</td><td>Main</td><td>Jennifer Vanzandt</td><td>$261.00</td></tr>
+      <tr><td></td><td>314 W Norris St</td><td>A</td><td>Candida Sanchez</td><td>$1,000.00</td></tr>
+    </tbody></table>
+  </div>
+  <div class="shdr">February</div>
+  <div class="card">
+    <table><thead><tr><th>Bank deposit date</th><th>Bank amount</th><th>Property</th><th>Unit</th><th>Tenant</th><th>Rent amt</th></tr></thead>
+    <tbody>
+      <tr><td>2/2 $1,000</td><td>$1,000.00</td><td>314 W Norris St</td><td>A</td><td>Hasan Thomas</td><td>$1,000.00</td></tr>
+      <tr><td>2/3 $1,825</td><td>$1,825.00</td><td>314 W Norris St</td><td>B</td><td>Bempa Ashia</td><td>$1,825.00</td></tr>
+      <tr><td>2/5 $1,450</td><td>$1,450.00</td><td>507 W Dauphin St</td><td>A</td><td>Nia Hinds</td><td>$1,450.00</td></tr>
+      <tr><td>2/9 $1,525</td><td>$1,525.00</td><td>507 W Dauphin St</td><td>B</td><td>LeeAndra White Black</td><td>$1,525.00</td></tr>
+      <tr><td>2/17 $2,250</td><td>$2,250.00</td><td>1948 N Orianna St</td><td>Main</td><td>Jennifer Vanzandt</td><td>$2,250.00 (rent + late fee)</td></tr>
+      <tr><td>2/26 $1,000</td><td>$1,000.00</td><td>314 W Norris St</td><td>A</td><td>Candida Sanchez</td><td>$1,000.00</td></tr>
+    </tbody></table>
+  </div>
+  <div class="shdr">March</div>
+  <div class="card">
+    <table><thead><tr><th>Bank deposit date</th><th>Bank amount</th><th>Property</th><th>Unit</th><th>Tenant</th><th>Rent amt</th></tr></thead>
+    <tbody>
+      <tr><td>3/3 $3,275 (split)</td><td rowspan="2">$3,275.00</td><td>507 W Dauphin St</td><td>A</td><td>Nia Hinds</td><td>$1,450.00</td></tr>
+      <tr><td></td><td>314 W Norris St</td><td>B</td><td>Bempa Ashia</td><td>$1,825.00</td></tr>
+      <tr><td>3/5 $2,200 (bank 3/6)</td><td>$2,200.00</td><td>1948 N Orianna St</td><td>Main</td><td>Jennifer Vanzandt</td><td>$2,200.00</td></tr>
+      <tr><td>3/8 $1,000 (bank 3/9)</td><td>$1,000.00</td><td>314 W Norris St</td><td>A</td><td>Hasan Thomas</td><td>$1,000.00</td></tr>
+      <tr><td>3/6 $1,000 (bank 3/10)</td><td>$1,000.00</td><td>507 W Dauphin St</td><td>B</td><td>LeeAndra White Black</td><td>$1,000.00 (late fee)</td></tr>
+    </tbody></table>
+  </div>
+</div>
+
+<!-- PROPERTIES -->
+<div id="tab-props" style="display:none">
+  <div class="shdr">Stabilized — expense accounts, class = property</div>
+  <div class="card">
+    <table><thead><tr><th>Property</th><th>Loan</th><th>Tenants Jan–Mar</th></tr></thead>
+    <tbody>
+      <tr><td><strong>314 W Norris St</strong> (duplex)</td><td>PCB #9000798251</td><td>Unit A: Candida Sanchez, Hasan Thomas · Unit B: Bempa Ashia</td></tr>
+      <tr><td><strong>1948 N Orianna St</strong> (single family)</td><td>PCB #9000829048</td><td>Jennifer Vanzandt (late fees recurring)</td></tr>
+      <tr><td><strong>507 W Dauphin St</strong> (duplex)</td><td>Fay #0000426433</td><td>Unit A: Nia Hinds · Unit B: LeeAndra White Black</td></tr>
+    </tbody></table>
+  </div>
+  <div class="shdr">Pre-stab — all costs capitalized, no class</div>
+  <div class="card">
+    <table><thead><tr><th>Property</th><th>Status</th><th>Key activity Jan–Mar 2026</th></tr></thead>
+    <tbody>
+      <tr><td><strong>5461 W Berks St</strong></td><td>Active construction</td><td>G&J $15k · Andrii Pasichnyk labor · BSZ Group heater $7,700 · KAS Painting $3,650 · Express Builders $2,600 · Grande Choice countertops $4,265 · Diamond State Insurance $2,176 · PGW $378.36</td></tr>
+      <tr><td><strong>5746 Grays Ave</strong></td><td>Active construction</td><td>G&J $50k · Alexoff Co · Piotr Keraz · Jupiter 91 $4k+$4k · MSC LTD · Star Builders $1,530 · Commons & Common legal $1,435 · Insurance $28.71 · Transfer tax refund −$2,657.03</td></tr>
+      <tr><td><strong>2415 N 4th St</strong></td><td>Vacant lot</td><td>RE tax $573.92 · Water $21.64/mo</td></tr>
+      <tr><td><strong>2431 N 3rd St</strong></td><td>Vacant lot</td><td>Water $21.64/mo · RE tax $587 (to be paid — watch April)</td></tr>
+      <tr><td><strong>2433 N 6th St</strong></td><td>Acquiring</td><td>No direct bank activity Jan–Mar (see 2428 N Fairhill)</td></tr>
+      <tr><td><strong>6541 Edmund St</strong></td><td>Pre-stab — occupied, eviction</td><td>RE tax $1,954 paid by Cambria Group LLC in error → Due from Cambria Group LLC</td></tr>
+      <tr><td><strong>7338 N 20th St</strong> ⭐ NEW</td><td>Acquiring — 50% interest</td><td>Purchase $35,132.96 (2/11) · Legal fee Joe Keenan $275 (Check 1179)</td></tr>
+      <tr><td><strong>2428 N Fairhill St</strong> ⭐ NEW</td><td>Acquiring</td><td>Check 1181 ,900 (Josh reimbursement — Glenn Dawson loan) + Check 1182 48.75 (recording fee) — both capitalized</td></tr>
+    </tbody></table>
+  </div>
+  <div class="warn">Note: 6541 Edmund RE tax $1,954 was paid by Cambria Group LLC. On GJ Holdings books: DR Due from Cambria Group LLC / CR Penn Community #3395 — when Cambria reimburses GJ Holdings.</div>
+</div>
+
+<!-- CONTRIBUTIONS -->
+<div id="tab-contribs" style="display:none">
+  <div class="shdr">Jan $10,000/member round — all 4 complete ✓ + 1 late Dec deposit</div>
+  <div class="card">
+    <table><thead><tr><th>Date</th><th>Amount</th><th>Member</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>1/5</td><td>$5,000</td><td>Member TBD</td><td>Late Dec 2025 contribution — arrived Jan</td></tr>
+      <tr><td>1/20</td><td>$5,000</td><td>Josh Kravets</td><td>Deposit 1 of 2 (sheet 1/19)</td></tr>
+      <tr><td>1/20</td><td>$5,000</td><td>Member TBD</td><td>Deposit 1 of 2</td></tr>
+      <tr><td>1/21</td><td>$5,000</td><td>Member TBD</td><td>Deposit 1 of 2</td></tr>
+      <tr><td>1/21</td><td>$5,000</td><td>Member TBD</td><td>Deposit 1 of 2</td></tr>
+      <tr><td>1/24</td><td>$5,000</td><td>Josh Kravets</td><td>Deposit 2 of 2 (sheet 1/23)</td></tr>
+      <tr><td>1/26</td><td>$5,000</td><td>Member TBD</td><td>Deposit 2 of 2</td></tr>
+      <tr><td>1/26</td><td>$5,000</td><td>Member TBD</td><td>Deposit 2 of 2</td></tr>
+      <tr><td>1/26</td><td>$5,000</td><td>Member TBD</td><td>Deposit 2 of 2</td></tr>
+    </tbody></table>
+    <div style="font-size:12px;color:#555;margin-top:.5rem;padding:.5rem;background:#f5f5f3;border-radius:6px">All 4 members × $10k = $40k complete ✓ + $5k late Dec. Check Penn Community transfer details to assign member names.</div>
+  </div>
+  <div class="shdr">Feb $18,000/member round — all 4 complete ✓</div>
+  <div class="card">
+    <table><thead><tr><th>Date</th><th>Amount</th><th>Member</th></tr></thead>
+    <tbody>
+      <tr><td>2/10</td><td>$18,000</td><td>Josh Kravets (sheet 2/9)</td></tr>
+      <tr><td>2/10</td><td>$18,000</td><td>Member TBD</td></tr>
+      <tr><td>2/11</td><td>$18,000</td><td>Member TBD</td></tr>
+      <tr><td>2/13</td><td>$18,000</td><td>Member TBD</td></tr>
+    </tbody></table>
+  </div>
+  <div class="shdr">Feb $2,000/member round — all 4 complete ✓</div>
+  <div class="card">
+    <table><thead><tr><th>Date</th><th>Amount</th><th>Member</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>2/26</td><td>$2,000</td><td>Josh Kravets</td><td>Sheet 2/25 "cover taxes"</td></tr>
+      <tr><td>2/27</td><td>$2,000</td><td>Member TBD</td><td></td></tr>
+      <tr><td>3/4 (deposit)</td><td>$2,000</td><td>Member TBD</td><td></td></tr>
+      <tr><td>3/4 (inside $7k)</td><td>$2,000</td><td>Boris Boloborodov</td><td>Combined $5k+$2k into $7k</td></tr>
+    </tbody></table>
+  </div>
+  <div class="shdr">Feb $5,000/member round — ⚠ 3 of 4 only</div>
+  <div class="card">
+    <table><thead><tr><th>Date</th><th>Amount</th><th>Member</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>2/27</td><td>$5,000</td><td>Josh Kravets</td><td>Sheet 2/27 "credit card"</td></tr>
+      <tr><td>2/27</td><td>$5,000</td><td>Member TBD</td><td></td></tr>
+      <tr><td>3/4 (inside $7k)</td><td>$5,000</td><td>Boris Boloborodov</td><td>Combined with $2k</td></tr>
+      <tr style="background:#fef3e2"><td>—</td><td style="color:#8a5c00;font-weight:500">$5,000 MISSING</td><td style="color:#8a5c00">1 member TBD</td><td style="color:#8a5c00">Never received — follow up</td></tr>
+    </tbody></table>
+  </div>
+</div>
+
+<!-- VENDORS -->
+<div id="tab-vendors" style="display:none">
+  <div class="info">All vendors identified from check images. YTD totals for 1099 tracking (potential 1099-NEC if >$600).</div>
+  <div class="card">
+    <table><thead><tr><th>Vendor</th><th>Primary property</th><th>Jan</th><th>Feb</th><th>Mar</th><th style="font-weight:600">YTD Total</th></tr></thead>
+    <tbody>
+      <tr><td><strong>G&J Group LLC (acct 5494)</strong></td><td>Grays/Berks</td><td>$20,000</td><td>$40,000</td><td>$13,000</td><td style="font-weight:600">$73,000</td></tr>
+      <tr><td><strong>Andrii Pasichnyk</strong></td><td>5461 W Berks</td><td>$3,300</td><td>$4,180</td><td>$4,180</td><td style="font-weight:600">$11,660</td></tr>
+      <tr><td><strong>Alexoff Co</strong></td><td>Grays/Berks</td><td>$6,260</td><td>$2,537</td><td>$1,500</td><td style="font-weight:600">$10,297</td></tr>
+      <tr><td><strong>Piotr Keraz</strong></td><td>Grays/Berks</td><td>$6,100</td><td>$2,500</td><td>$1,500</td><td style="font-weight:600">$10,100</td></tr>
+      <tr><td><strong>Jupiter 91 Inc</strong></td><td>5746 Grays/Berks</td><td>$4,000</td><td>—</td><td>$4,000</td><td style="font-weight:600">$8,000</td></tr>
+      <tr><td><strong>BSZ Group</strong></td><td>5461 W Berks</td><td>$7,700</td><td>—</td><td>—</td><td style="font-weight:600">$7,700</td></tr>
+      <tr><td><strong>KAS Painting</strong></td><td>5461 W Berks</td><td>—</td><td>$3,650</td><td>—</td><td style="font-weight:600">$3,650</td></tr>
+      <tr><td><strong>Grande Choice</strong></td><td>5461 W Berks</td><td>—</td><td>—</td><td>$4,265</td><td style="font-weight:600">$4,265</td></tr>
+      <tr><td><strong>Sole Construction</strong></td><td>507 W Dauphin</td><td>$5,000</td><td>—</td><td>—</td><td style="font-weight:600">$5,000</td></tr>
+      <tr><td><strong>MSC LTD</strong></td><td>5746 Grays</td><td>$1,685</td><td>$1,855</td><td>—</td><td style="font-weight:600">$3,540</td></tr>
+      <tr><td><strong>Express Builders Inc</strong></td><td>5461 W Berks</td><td>$2,600</td><td>—</td><td>—</td><td style="font-weight:600">$2,600</td></tr>
+      <tr><td><strong>Star Builders Inc</strong></td><td>5746 Grays</td><td>$1,530</td><td>—</td><td>—</td><td style="font-weight:600">$1,530</td></tr>
+      <tr><td><strong>Diamond State Insurance Co</strong></td><td>5461 W Berks</td><td>—</td><td>—</td><td>$2,176</td><td style="font-weight:600">$2,176</td></tr>
+      <tr><td><strong>Commons & Common (legal)</strong></td><td>5746 Grays</td><td>$1,435</td><td>—</td><td>—</td><td style="font-weight:600">$1,435</td></tr>
+      <tr><td><strong>Joe Keenan</strong></td><td>7338 N 20th</td><td>—</td><td>$275</td><td>—</td><td style="font-weight:600">$275</td></tr>
+      <tr><td><strong>Lily Kravets</strong></td><td>314 W Norris</td><td>—</td><td>—</td><td>$268</td><td style="font-weight:600">$268</td></tr>
+    </tbody></table>
+    <div class="note" style="margin-top:.75rem">Note: G&J Group total includes $8,000 on 3/20 booked as "credit card bill" — confirmed as contractor payment to 5746 Grays Ave. All G&J payments capitalized per pre-stab policy.</div>
+  </div>
+</div>
+
+<!-- NOTES -->
+<div id="tab-notes" style="display:none">
+  <div class="shdr">Pending items</div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:4px">1. Missing $5,000 capital contribution — Feb round</div>
+    <div class="note">3 of 4 members contributed $5k (Josh, Boris, 1 other). One member TBD never sent their $5k. Confirm which member and follow up.</div>
+    <div style="font-weight:500;margin-bottom:4px;margin-top:.75rem">2. $823.80 deposit (1/22) — unidentified</div>
+    <div class="note">Odd amount, not on capital contributions sheet, not a RentRedi deposit. Booked to Ask My Accountant pending identification.</div>
+  </div>
+  <div class="shdr">Watch for in April statement</div>
+  <div class="card">
+    <div class="note">
+      <strong>2431 N 3rd St RE tax $587</strong> — being paid now, will appear in April bank statement. Route to: DR 2431 N 3rd St (asset) / CR Penn Community #3395.<br><br>
+      <strong>7338 N 20th St — second 50% purchase</strong> — remaining 50% interest expected in coming months. Watch for second wire of ~$35k.<br><br>
+      <strong>Missing $5k capital contribution</strong> — watch for deposit when member sends it.
+    </div>
+  </div>
+  <div class="shdr">Intercompany — 6541 Edmund St RE tax</div>
+  <div class="card">
+    <div class="note">RE tax of $1,954 for 6541 Edmund St was paid by Cambria Group LLC — not from GJ Holdings bank account. No entry needed in GJ Holdings. When Cambria is processed, book as: DR 6541 Edmund St (asset on Cambria's books) / CR Penn Community [Cambria account].</div>
+  </div>
+  <div class="shdr">Water bill policy — confirmed mapping</div>
+  <div class="card">
+    <div class="note">
+      <strong>Recurring every month:</strong><br>
+      $81.49 → 314 W Norris St (expense)<br>
+      $35.05 → 5746 Grays Ave (capitalized)<br>
+      $33.25 → 5461 W Berks St (capitalized)<br>
+      $21.64 → 2415 N 4th St (capitalized)<br>
+      $21.64 → 2431 N 3rd St (capitalized)<br><br>
+      <strong>Variable (City of Phila bills erratically — may cover multiple months):</strong><br>
+      Higher amounts ($61–$100) → 507 W Dauphin St and 1948 N Orianna St (expense)<br>
+      Amounts confirm against: duplex &gt; duplex &gt; single family &gt; pre-stab lots
+    </div>
+  </div>
+  <div class="shdr">Check 1181 and 1182 — routing correction</div>
+  <div class="card">
+    <div class="note">Originally attributed to 2428 N Fairhill St. Confirmed from 2433 N 6th St expense sheet that both belong to <strong>2433 N 6th St</strong>:<br>
+    — Check 1181 $4,900 (Josh Kravets): Loan to Glenn Dawson for church taxes — reimbursement to Josh<br>
+    — Check 1182 $248.75 (City of Philadelphia): Recording fee for mortgage to Glenn Dawson<br>
+    Both capitalized to 2433 N 6th St asset account.</div>
+  </div>
+</div>
+
+<!-- EXPORT -->
+<div id="tab-export" style="display:none">
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:10px">Final readiness checklist</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>All 3 loan splits confirmed for all 3 months (PCB Orianna, PCB Norris, Fay Dauphin)</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>All 30+ check payees identified from PDF images</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>507 W Dauphin refi — $110,879.10 proceeds + 4× $27,719 distributions fully mapped</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>G&J Group $73,000 total — $50k Grays, $15k Berks, $8k Grays (credit card)</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>All 5 RE taxes confirmed from property expense sheets</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>All RentRedi deposits matched to tenants and properties</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>Transfer tax refund $2,657.03 → reduce 5746 Grays Ave asset</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>7338 N 20th St — 50% purchase $35,132.96 + legal fee $275</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>2428 N Fairhill St — Check 1181 ($4,900) + Check 1182 ($248.75) capitalized</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>Water bills fully mapped to all 5 recurring properties + variable amounts</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>Capital contribution rounds: Jan $10k ✓, Feb $18k ✓, Feb $2k ✓, Feb $5k (3/4 only)</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>Ending balance $15,219.91 ✓</div>
+    <div class="ri"><span class="rdot" style="background:#fef3e2;color:#7a4a00">!</span>$5k contribution missing — one member Feb $5k round — confirm who</div>
+    <div class="ri"><span class="rdot" style="background:#fef3e2;color:#7a4a00">!</span>$823.80 deposit (1/22) — unidentified</div>
+    <div class="ri"><span class="rdot" style="background:#fef3e2;color:#7a4a00">!</span>2431 N 3rd RE tax $587 — watch for April payment</div>
+    <div class="ri"><span class="rdot" style="background:#fef3e2;color:#7a4a00">!</span>7338 N 20th St second 50% purchase — watch for coming months</div>
+    <br>
+    <button onclick="exportCSV()" style="font-size:13px;padding:7px 16px;border-radius:6px;border:0.5px solid #ccc;background:#fff;cursor:pointer">⬇ Export CSV for QB import</button>
+  </div>
+</div>
+
+<script>
+const ALL=[
+// ══ JANUARY ══
+{mo:'jan',date:'1/2',desc:'Loan — 1948 N Orianna',detail:'PCB #9000829048 · $269.00 prin / $856.60 int',amt:-1125.60,type:'Liability',qb:'PCB Loan - 1948 N Orianna',cls:'1948 N Orianna St',chk:'',st:'matched'},
+{mo:'jan',date:'1/2',desc:'Loan — 314 W Norris',detail:'PCB #9000798251 · $754.29 prin / $1,256.80 int',amt:-2011.09,type:'Liability',qb:'PCB Loan - 314 W Norris',cls:'314 W Norris St',chk:'',st:'matched'},
+{mo:'jan',date:'1/2',desc:'Refi proceeds — 507 W Dauphin',detail:'Wire deposit — new Fay Servicing loan',amt:110879.10,type:'Refi',qb:'Fay Loan - 507 W Dauphin',cls:'507 W Dauphin St',chk:'',st:'matched'},
+{mo:'jan',date:'1/2',desc:'Insurance refund — 5461 W Berks',detail:'Mobile deposit $484.15',amt:484.15,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/2',desc:'Rent — RentRedi $500',detail:'314 W Norris B: Bempa Ashia partial',amt:500,type:'Income',qb:'Rental Income',cls:'314 W Norris St',chk:'',st:'matched'},
+{mo:'jan',date:'1/5',desc:'Capital contribution — late Dec',detail:'Mobile deposit — Steve Kravets (late Dec 2025)',amt:5000,type:'Equity',qb:'Steve Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/5',desc:'Rent — RentRedi $1,000',detail:'507 W Dauphin — various',amt:1000,type:'Income',qb:'Rental Income',cls:'507 W Dauphin St',chk:'',st:'matched'},
+{mo:'jan',date:'1/5',desc:'Star Builders Inc',detail:'Check 1146 — 5746 Grays Ave',amt:-1530,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'1146',st:'matched'},
+{mo:'jan',date:'1/6',desc:'Rent — RentRedi $2,562.90',detail:'314 W Norris B $1,825 + 507 Dauphin B $737.90 (prorated)',amt:2562.90,type:'Income',qb:'Rental Income',cls:'314 W Norris / 507 W Dauphin',chk:'',st:'matched'},
+{mo:'jan',date:'1/7',desc:'PECO — 5746 Grays Ave',detail:'$13.99 — capitalized pre-stab',amt:-13.99,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/7',desc:'PECO — 5461 W Berks St',detail:'$13.99 — capitalized pre-stab',amt:-13.99,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/7',desc:'Distribution — Steven Kravets',detail:'Check 1211 — 507 W Dauphin refi',amt:-27719,type:'Equity',qb:'Steve Kravets Capital:Draws',cls:'',chk:'1211',st:'matched'},
+{mo:'jan',date:'1/8',desc:'Distribution — Josh Kravets',detail:'Check 1177 — 507 W Dauphin refi',amt:-27719,type:'Equity',qb:'Josh Kravets Capital:Draw',cls:'',chk:'1177',st:'matched'},
+{mo:'jan',date:'1/12',desc:'G&J Group — contractor',detail:'GJ holding to GJ 5494 — 5746 Grays Ave',amt:-10000,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/12',desc:'Andrii Pasichnyk — labor',detail:'Check 1028 — 5461 W Berks',amt:-1100,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1028',st:'matched'},
+{mo:'jan',date:'1/12',desc:'Alexoff Co — labor',detail:'Check 1029 — 5746 Grays Ave',amt:-2000,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'1029',st:'matched'},
+{mo:'jan',date:'1/12',desc:'Piotr Keraz — labor',detail:'Check 1030 — 5746 Grays Ave',amt:-2080,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'1030',st:'matched'},
+{mo:'jan',date:'1/13',desc:'Transfer tax refund — Grays Ave',detail:'Mobile deposit — reduce 5746 Grays Ave asset',amt:2657.03,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/13',desc:'Sole Construction — deposit',detail:'Check 1031 — 507 W Dauphin carpentry',amt:-5000,type:'Asset',qb:'507 W Dauphin St',cls:'',chk:'1031',st:'matched'},
+{mo:'jan',date:'1/13',desc:'Distribution — Gene Kravets',detail:'Check 1032 — 507 W Dauphin refi',amt:-27719,type:'Equity',qb:'Gene Kravets Capital:Draws',cls:'',chk:'1032',st:'matched'},
+{mo:'jan',date:'1/14',desc:'Distribution — Boris Boloborodov',detail:'Check 1147 — 507 W Dauphin refi',amt:-27719,type:'Equity',qb:'Boris Capital:Draw',cls:'',chk:'1147',st:'matched'},
+{mo:'jan',date:'1/14',desc:'Rent — RentRedi $1,100',detail:'507 W Dauphin B — LeeAndra White Black',amt:1100,type:'Income',qb:'Rental Income',cls:'507 W Dauphin St',chk:'',st:'matched'},
+{mo:'jan',date:'1/15',desc:'PECO — 5746 Grays Ave',detail:'$24.23 — capitalized pre-stab',amt:-24.23,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/15',desc:'PECO — 5461 W Berks St',detail:'$24.22 — capitalized pre-stab',amt:-24.22,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/15',desc:'Commons & Common — legal',detail:'5746 Grays Ave legal expense',amt:-1435,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/15',desc:'G&J Group — contractor',detail:'GJ holdings to GJ 5494 — 5746 Grays Ave',amt:-5000,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/20',desc:'G&J Group — contractor',detail:'GJ hold to 5494 — 5461 W Berks St',amt:-5000,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/20',desc:'Capital contribution',detail:'Mobile deposit — Josh Kravets (deposit 1 of 2)',amt:5000,type:'Equity',qb:'Josh Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/20',desc:'Capital contribution',detail:'Mobile deposit — Gene Kravets (deposit 1 of 2)',amt:5000,type:'Equity',qb:'Gene Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/20',desc:'Andrii Pasichnyk — labor',detail:'Check 1034 — 5461 W Berks labor',amt:-1100,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1034',st:'matched'},
+{mo:'jan',date:'1/20',desc:'Piotr Keraz — labor',detail:'Check 1035 — 5746 Grays labor',amt:-4020,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'1035',st:'matched'},
+{mo:'jan',date:'1/20',desc:'BSZ Group — heater install',detail:'Check 1148 — 5461 W Berks',amt:-7700,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1148',st:'matched'},
+{mo:'jan',date:'1/21',desc:'Water — $35.05',detail:'City of Phila — 5746 Grays Ave (capitalized)',amt:-35.05,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/21',desc:'Capital contribution',detail:'Deposit — Boris Boloborodov (deposit 1 of 2)',amt:5000,type:'Equity',qb:'Boris Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/21',desc:'Capital contribution',detail:'Mobile deposit — Steve Kravets (deposit 1 of 2)',amt:5000,type:'Equity',qb:'Steve Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/21',desc:'Alexoff Co — labor',detail:'Check 1036 — 5746 Grays labor',amt:-4260,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'1036',st:'matched'},
+{mo:'jan',date:'1/21',desc:'Jupiter 91 Inc — rough in',detail:'Check 1038 — 5746 Grays Ave rough in',amt:-4000,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'1038',st:'matched'},
+{mo:'jan',date:'1/21',desc:'Rent — RentRedi $1,889',detail:'1948 N Orianna — Jennifer Vanzandt (rent+late fee)',amt:1889,type:'Income',qb:'Rental Income',cls:'1948 N Orianna St',chk:'',st:'matched'},
+{mo:'jan',date:'1/22',desc:'Insurance refund — 507 W Dauphin',detail:'Deposit $823.80 — insurance refund',amt:823.80,type:'Asset',qb:'507 W Dauphin St',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/22',desc:'Register of Wills',detail:'Check 1178 — 6541 Edmund St estate payment',amt:-63,type:'Asset',qb:'6541 Edmund St',cls:'',chk:'1178',st:'matched'},
+{mo:'jan',date:'1/22',desc:'Rent — RentRedi $1,889',detail:'1948 N Orianna $261 + 314 W Norris A $1,000 Candida',amt:1889,type:'Income',qb:'Rental Income',cls:'1948 N Orianna / 314 W Norris',chk:'',st:'matched'},
+{mo:'jan',date:'1/24',desc:'Capital contribution',detail:'Deposit — Josh Kravets (deposit 2 of 2)',amt:5000,type:'Equity',qb:'Josh Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/26',desc:'Capital contribution',detail:'Mobile deposit — Steve Kravets (late Dec, deposit 2)',amt:5000,type:'Equity',qb:'Steve Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/26',desc:'Capital contribution',detail:'Mobile deposit — Gene Kravets (deposit 2 of 2)',amt:5000,type:'Equity',qb:'Gene Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/26',desc:'Capital contribution',detail:'Mobile deposit — Boris Boloborodov (deposit 2 of 2)',amt:5000,type:'Equity',qb:'Boris Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/26',desc:'Capital contribution',detail:'Mobile deposit — Steve Kravets (deposit 2 of 2)',amt:5000,type:'Equity',qb:'Steve Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/26',desc:'Andrii Pasichnyk — labor',detail:'Check 1149 — 5461 W Berks',amt:-1100,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1149',st:'matched'},
+{mo:'jan',date:'1/26',desc:'Rent — $100',detail:'1948 N Orianna — Jennifer Vanzandt late fee',amt:100,type:'Income',qb:'Rental Income',cls:'1948 N Orianna St',chk:'',st:'matched'},
+{mo:'jan',date:'1/27',desc:'Water — $33.25',detail:'City of Phila — 5461 W Berks St (capitalized)',amt:-33.25,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/27',desc:'MSC LTD',detail:'Check 1150 — 5746 Grays Ave',amt:-1685,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'1150',st:'matched'},
+{mo:'jan',date:'1/27',desc:'Rent — RentRedi $1,261',detail:'1948 Orianna $261 + 314 W Norris A $1,000 Candida Sanchez',amt:1261,type:'Income',qb:'Rental Income',cls:'1948 N Orianna / 314 W Norris',chk:'',st:'matched'},
+{mo:'jan',date:'1/28',desc:'Gas — 1252 N 18th St',detail:'Philadelphia Gas $68.54 — expense',amt:-68.54,type:'Expense',qb:'Gas',cls:'1252 N 18th St',chk:'',st:'matched'},
+{mo:'jan',date:'1/28',desc:'Gas — 5461 W Berks St',detail:'Philadelphia Gas $68.54 — capitalized pre-stab',amt:-68.54,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/28',desc:'Gas — 5746 Grays Ave',detail:'Philadelphia Gas $68.53 — capitalized pre-stab',amt:-68.53,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'jan',date:'1/30',desc:'Water — $81.49',detail:'City of Phila — 314 W Norris St',amt:-81.49,type:'Expense',qb:'Water',cls:'314 W Norris St',chk:'',st:'matched'},
+{mo:'jan',date:'1/30',desc:'Express Builders Inc',detail:'Check 1151 — 5461 W Berks St',amt:-2600,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1151',st:'matched'},
+
+// ══ FEBRUARY ══
+{mo:'feb',date:'2/2',desc:'Water — 2415 N 4th St',detail:'City of Phila $21.64 — capitalized',amt:-21.64,type:'Asset',qb:'2415 N 4th St',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/2',desc:'Water — 2431 N 3rd St',detail:'City of Phila $21.64 — capitalized',amt:-21.64,type:'Asset',qb:'2431 N 3rd St',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/2',desc:'Water × 3 — variable',detail:'$61.87 Orianna + $72.98 Dauphin + $100 Dauphin',amt:-234.85,type:'Expense',qb:'Water',cls:'1948 N Orianna / 507 W Dauphin',chk:'',st:'matched'},
+{mo:'feb',date:'2/2',desc:'Fay Servicing — 507 W Dauphin',detail:'Loan #0000426433 · $258.22 prin / $1,236.48 int / $180.02 escrow',amt:-1674.72,type:'Liability',qb:'Fay Loan - 507 W Dauphin',cls:'507 W Dauphin St',chk:'',st:'matched'},
+{mo:'feb',date:'2/2',desc:'G&J Group — contractor',detail:'Contractor payment from GJ Holding — 5461 W Berks',amt:-5000,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/2',desc:'Andrii Pasichnyk — labor',detail:'Check 1152 — 5461 W Berks labor',amt:-880,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1152',st:'matched'},
+{mo:'feb',date:'2/2',desc:'Loan — 314 W Norris',detail:'PCB #9000798251 · $757.02 prin / $1,254.07 int',amt:-2011.09,type:'Liability',qb:'PCB Loan - 314 W Norris',cls:'314 W Norris St',chk:'',st:'matched'},
+{mo:'feb',date:'2/2',desc:'Loan — 1948 N Orianna',detail:'PCB #9000829048 · $270.39 prin / $855.21 int',amt:-1125.60,type:'Liability',qb:'PCB Loan - 1948 N Orianna',cls:'1948 N Orianna St',chk:'',st:'matched'},
+{mo:'feb',date:'2/2',desc:'Rent — RentRedi $1,000',detail:'314 W Norris A — Hasan Thomas',amt:1000,type:'Income',qb:'Rental Income',cls:'314 W Norris St',chk:'',st:'matched'},
+{mo:'feb',date:'2/3',desc:'Rent — RentRedi $1,825',detail:'314 W Norris B — Bempa Ashia',amt:1825,type:'Income',qb:'Rental Income',cls:'314 W Norris St',chk:'',st:'matched'},
+{mo:'feb',date:'2/5',desc:'Rent — RentRedi $1,450',detail:'507 W Dauphin A — Nia Hinds',amt:1450,type:'Income',qb:'Rental Income',cls:'507 W Dauphin St',chk:'',st:'matched'},
+{mo:'feb',date:'2/9',desc:'Andrii Pasichnyk — labor',detail:'Check 1153 — 5461 W Berks',amt:-1100,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1153',st:'matched'},
+{mo:'feb',date:'2/9',desc:'Rent — RentRedi $1,525',detail:'507 W Dauphin B — LeeAndra White Black',amt:1525,type:'Income',qb:'Rental Income',cls:'507 W Dauphin St',chk:'',st:'matched'},
+{mo:'feb',date:'2/10',desc:'Insurance refund — 507 W Dauphin',detail:'Deposit $1,081 — confirmed bank credits & debits',amt:1081,type:'Asset',qb:'507 W Dauphin St',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/10',desc:'Capital contribution $18,000',detail:'Josh Kravets (sheet 2/9 — Grays/Berks)',amt:18000,type:'Equity',qb:'Josh Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/10',desc:'Capital contribution $18,000',detail:'Steve Kravets',amt:18000,type:'Equity',qb:'Steve Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/11',desc:'Capital contribution $18,000',detail:'Gene Kravets',amt:18000,type:'Equity',qb:'Gene Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/13',desc:'Capital contribution $18,000',detail:'Boris Boloborodov',amt:18000,type:'Equity',qb:'Boris Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/10',desc:'Alexoff Co — Berks finish',detail:'Check 1039 — 5461 W Berks',amt:-537,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1039',st:'matched'},
+{mo:'feb',date:'2/10',desc:'Piotr Keraz — Berks finish',detail:'Check 1040 — 5461 W Berks',amt:-500,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1040',st:'matched'},
+{mo:'feb',date:'2/11',desc:'PECO — 5746 Grays Ave',detail:'$41.82 — capitalized pre-stab',amt:-41.82,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/11',desc:'PECO — 5461 W Berks St',detail:'$41.82 — capitalized pre-stab',amt:-41.82,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/11',desc:'Purchase — 7338 N 20th St (50%)',detail:'Wire $35,132.96 — 50% interest acquisition',amt:-35132.96,type:'Asset',qb:'7338 N 20th St',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/12',desc:'SuperValue — supplies',detail:'$8.42 miscellaneous supplies',amt:-8.42,type:'Expense',qb:'Supplies',cls:'2030 N Lawrence St',chk:'',st:'matched'},
+{mo:'feb',date:'2/13',desc:'Joe Keenan — legal/recording',detail:'Check 1179 — 7338 N 20th St',amt:-275,type:'Asset',qb:'7338 N 20th St',cls:'',chk:'1179',st:'matched'},
+{mo:'feb',date:'2/13',desc:'KAS Painting',detail:'Check 1213 — 5461 W Berks St painting',amt:-3650,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1213',st:'matched'},
+{mo:'feb',date:'2/17',desc:'PECO — 5746 Grays Ave',detail:'$24.07 — capitalized pre-stab',amt:-24.07,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/17',desc:'PECO — 5461 W Berks St',detail:'$24.07 — capitalized pre-stab',amt:-24.07,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/17',desc:'Andrii Pasichnyk — labor',detail:'Check 1154 — 5461 W Berks labor',amt:-1100,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1154',st:'matched'},
+{mo:'feb',date:'2/17',desc:'Piotr Keraz — labor',detail:'Check 1214 — 5746 Grays Ave',amt:-2000,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'1214',st:'matched'},
+{mo:'feb',date:'2/17',desc:'Rent — RentRedi $2,250',detail:'1948 N Orianna — Jennifer Vanzandt (rent+late fee)',amt:2250,type:'Income',qb:'Rental Income',cls:'1948 N Orianna St',chk:'',st:'matched'},
+{mo:'feb',date:'2/18',desc:'Alexoff Co — labor',detail:'Check 1215 — 5746 Grays Ave',amt:-2000,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'1215',st:'matched'},
+{mo:'feb',date:'2/19',desc:'G&J Group — contractor',detail:'Contractor payment $35,000 — 5746 Grays Ave',amt:-35000,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/20',desc:'American Modern — insurance',detail:'Check 1212 — Policy 105-471-324 — 5746 Grays Ave',amt:-28.71,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'1212',st:'matched'},
+{mo:'feb',date:'2/23',desc:'Andrii Pasichnyk — labor',detail:'Check 1216 — labor',amt:-1100,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1216',st:'matched'},
+{mo:'feb',date:'2/24',desc:'Water — $35.05',detail:'City of Phila — 5746 Grays Ave (capitalized)',amt:-35.05,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/26',desc:'Water — $33.25',detail:'City of Phila — 5461 W Berks St (capitalized)',amt:-33.25,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/26',desc:'Capital contribution $2,000',detail:'Josh Kravets (sheet 2/25 cover taxes)',amt:2000,type:'Equity',qb:'Josh Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/26',desc:'Josh Kravets — 2428 N Fairhill reimbursement',detail:'Check 1181 — Josh reimbursement (Glenn Dawson church taxes) — 2428 N Fairhill',amt:-4900,type:'Asset',qb:'2428 N Fairhill St',cls:'',chk:'1181',st:'matched'},
+{mo:'feb',date:'2/27',desc:'Rent — RentRedi $1,000',detail:'314 W Norris A — Candida Sanchez',amt:1000,type:'Income',qb:'Rental Income',cls:'314 W Norris St',chk:'',st:'matched'},
+{mo:'feb',date:'2/27',desc:'Capital contribution $5,000',detail:'Josh Kravets (sheet 2/27 credit card)',amt:5000,type:'Equity',qb:'Josh Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/27',desc:'Capital contribution $5,000',detail:'Gene Kravets',amt:5000,type:'Equity',qb:'Gene Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/27',desc:'Capital contribution $2,000',detail:'Steve Kravets',amt:2000,type:'Equity',qb:'Steve Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'feb',date:'2/27',desc:'MSC LTD — kitchen & vanity',detail:'Check 1217 — 5746 Grays Ave',amt:-1855,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'1217',st:'matched'},
+
+// ══ MARCH ══
+{mo:'mar',date:'3/2',desc:'Water — $81.49',detail:'City of Phila — 314 W Norris St',amt:-81.49,type:'Expense',qb:'Water',cls:'314 W Norris St',chk:'',st:'matched'},
+{mo:'mar',date:'3/2',desc:'Gas — 1252 N 18th St',detail:'Philadelphia Gas $66.91 — expense',amt:-66.91,type:'Expense',qb:'Gas',cls:'1252 N 18th St',chk:'',st:'matched'},
+{mo:'mar',date:'3/2',desc:'Gas — 5461 W Berks St',detail:'Philadelphia Gas $66.91 — capitalized pre-stab',amt:-66.91,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/2',desc:'Gas — 5746 Grays Ave',detail:'Philadelphia Gas $66.90 — capitalized pre-stab',amt:-66.90,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/2',desc:'Fay Servicing — 507 W Dauphin',detail:'Loan #0000426433 · $258.22 prin / $1,236.48 int / $180.02 escrow',amt:-1674.72,type:'Liability',qb:'Fay Loan - 507 W Dauphin',cls:'507 W Dauphin St',chk:'',st:'matched'},
+{mo:'mar',date:'3/2',desc:'Andrii Pasichnyk — labor',detail:'Check 1156 — 5461 W Berks',amt:-1100,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1156',st:'matched'},
+{mo:'mar',date:'3/2',desc:'Loan — 314 W Norris',detail:'PCB #9000798251 · $880.94 prin / $1,130.15 int',amt:-2011.09,type:'Liability',qb:'PCB Loan - 314 W Norris',cls:'314 W Norris St',chk:'',st:'matched'},
+{mo:'mar',date:'3/2',desc:'Loan — 1948 N Orianna',detail:'PCB #9000829048 · $354.45 prin / $771.15 int',amt:-1125.60,type:'Liability',qb:'PCB Loan - 1948 N Orianna',cls:'1948 N Orianna St',chk:'',st:'matched'},
+{mo:'mar',date:'3/3',desc:'Water × 5',detail:'$21.64 (2415 N 4th) + $21.64 (2431 N 3rd) + $49.23 (Orianna) + $93.46 (Norris) + $98.27 (Dauphin)',amt:-284.24,type:'Mixed',qb:'Water',cls:'Various',chk:'',st:'matched'},
+{mo:'mar',date:'3/3',desc:'City of Philadelphia recording',detail:'Check 1251 — 2433 N 6th St mortgage recording fee',amt:-268,type:'Asset',qb:'2433 N 6th St',cls:'',chk:'1251',st:'matched'},
+{mo:'mar',date:'3/3',desc:'Rent — RentRedi $3,275',detail:'507 Dauphin A $1,450 (Nia Hinds) + 314 Norris B $1,825 (Bempa Ashia)',amt:3275,type:'Income',qb:'Rental Income',cls:'507 W Dauphin / 314 W Norris',chk:'',st:'matched'},
+{mo:'mar',date:'3/4',desc:'Gas — 1252 N 18th St',detail:'Philadelphia Gas $53.52 — expense',amt:-53.52,type:'Expense',qb:'Gas',cls:'1252 N 18th St',chk:'',st:'matched'},
+{mo:'mar',date:'3/4',desc:'Gas — 5461 W Berks St',detail:'Philadelphia Gas $53.52 — capitalized pre-stab',amt:-53.52,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/4',desc:'Gas — 5746 Grays Ave',detail:'Philadelphia Gas $53.51 — capitalized pre-stab',amt:-53.51,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/4',desc:'Capital contribution $2,000',detail:'Gene Kravets',amt:2000,type:'Equity',qb:'Gene Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/4',desc:'Capital contribution $7,000 — Boris',detail:'Boris Boloborodov ($5k Feb round + $2k Feb round combined)',amt:7000,type:'Equity',qb:'Boris Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/4',desc:'Alexoff Co — labor',detail:'Check 1218 — 5461 W Berks',amt:-1500,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1218',st:'matched'},
+{mo:'mar',date:'3/5',desc:'Jupiter 91 Inc',detail:'Check 1157 — 5746 Grays Ave',amt:-4000,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'1157',st:'matched'},
+{mo:'mar',date:'3/6',desc:'Rent — RentRedi $2,200',detail:'1948 N Orianna — Jennifer Vanzandt',amt:2200,type:'Income',qb:'Rental Income',cls:'1948 N Orianna St',chk:'',st:'matched'},
+{mo:'mar',date:'3/6',desc:'PGW — 5461 W Berks',detail:'Check 1155 — acct 0963556043 (capitalized)',amt:-378.36,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1155',st:'matched'},
+{mo:'mar',date:'3/6',desc:'Piotr Keraz — labor',detail:'Check 1219 — 5461 W Berks',amt:-1500,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1219',st:'matched'},
+{mo:'mar',date:'3/9',desc:'Rent — RentRedi $1,000',detail:'314 W Norris A — Hasan Thomas',amt:1000,type:'Income',qb:'Rental Income',cls:'314 W Norris St',chk:'',st:'matched'},
+{mo:'mar',date:'3/9',desc:'Andrii Pasichnyk — labor',detail:'Check 1158 — 5461 W Berks',amt:-1100,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1158',st:'matched'},
+{mo:'mar',date:'3/10',desc:'Rent — RentRedi $1,000',detail:'507 W Dauphin B — LeeAndra White Black (late fee)',amt:1000,type:'Income',qb:'Rental Income',cls:'507 W Dauphin St',chk:'',st:'matched'},
+{mo:'mar',date:'3/11',desc:'City of Philadelphia recording',detail:'Check 1182 — recording fee — 2428 N Fairhill St',amt:-248.75,type:'Asset',qb:'2428 N Fairhill St',cls:'',chk:'1182',st:'matched'},
+{mo:'mar',date:'3/16',desc:'PECO — 5746 Grays Ave',detail:'$23.71 — capitalized pre-stab',amt:-23.71,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/16',desc:'PECO — 5461 W Berks St',detail:'$23.71 — capitalized pre-stab',amt:-23.71,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/17',desc:'Diamond State Insurance',detail:'Check 1252 — 5461 W Berks acct 4001740160',amt:-2176,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1252',st:'matched'},
+{mo:'mar',date:'3/20',desc:'G&J Group — contractor',detail:'"Credit card bill" — confirmed contractor payment — 5746 Grays Ave',amt:-8000,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/23',desc:'RE tax — 2415 N 4th St',detail:'Phila Dept Rev $573.92 — confirmed from expense sheet',amt:-573.92,type:'Asset',qb:'2415 N 4th St',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/23',desc:'RE tax — 1948 N Orianna St',detail:'Phila Dept Rev $1,189.84 — confirmed from expense sheet',amt:-1189.84,type:'Expense',qb:'Taxes - Phila',cls:'1948 N Orianna St',chk:'',st:'matched'},
+{mo:'mar',date:'3/23',desc:'RE tax — 314 W Norris St',detail:'Phila Dept Rev $1,651.76 — confirmed from expense sheet',amt:-1651.76,type:'Expense',qb:'Taxes - Phila',cls:'314 W Norris St',chk:'',st:'matched'},
+{mo:'mar',date:'3/23',desc:'RE tax — 5746 Grays Ave',detail:'Phila Dept Rev $1,768.91 — confirmed from expense sheet',amt:-1768.91,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/23',desc:'RE tax — 5461 W Berks St',detail:'Phila Dept Rev $3,092.16 — confirmed from expense sheet',amt:-3092.16,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/23',desc:'Capital contribution $10,000',detail:'Steve Kravets',amt:10000,type:'Equity',qb:'Steve Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/24',desc:'Capital contribution $10,000',detail:'Josh Kravets',amt:10000,type:'Equity',qb:'Josh Kravets Capital:Contribution',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/23',desc:'Andrii Pasichnyk — labor',detail:'Check 1159 — 5461 W Berks',amt:-1100,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1159',st:'matched'},
+{mo:'mar',date:'3/25',desc:'Water — $35.05',detail:'City of Phila — 5746 Grays Ave (capitalized)',amt:-35.05,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/25',desc:'G&J Group — contractor',detail:'Contractor payment $5,000 — 5746 Grays Ave',amt:-5000,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/26',desc:'Water — $33.25',detail:'City of Phila — 5461 W Berks St (capitalized)',amt:-33.25,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/26',desc:'Gas — 1252 N 18th St',detail:'Philadelphia Gas $79.35 — expense',amt:-79.35,type:'Expense',qb:'Gas',cls:'1252 N 18th St',chk:'',st:'matched'},
+{mo:'mar',date:'3/26',desc:'Gas — 5461 W Berks St',detail:'Philadelphia Gas $79.35 — capitalized pre-stab',amt:-79.35,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/26',desc:'Gas — 5746 Grays Ave',detail:'Philadelphia Gas $79.35 — capitalized pre-stab',amt:-79.35,type:'Asset',qb:'5746 Grays Ave',cls:'',chk:'',st:'matched'},
+{mo:'mar',date:'3/27',desc:'Grande Choice — countertops',detail:'Check 1221 — 5461 W Berks St',amt:-4265,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1221',st:'matched'},
+{mo:'mar',date:'3/30',desc:'Andrii Pasichnyk — labor',detail:'Check 1222 — 5461 W Berks',amt:-880,type:'Asset',qb:'5461 W Berks St',cls:'',chk:'1222',st:'matched'},
+{mo:'mar',date:'3/31',desc:'Water — $81.49',detail:'City of Phila — 314 W Norris St',amt:-81.49,type:'Expense',qb:'Water',cls:'314 W Norris St',chk:'',st:'matched'},
+{mo:'mar',date:'3/11',desc:'City of Philadelphia recording',detail:'Check 1182 — recording fee — 2428 N Fairhill St',amt:-248.75,type:'Asset',qb:'2428 N Fairhill St',cls:'',chk:'1182',st:'matched'},
+{mo:'mar',date:'3/27',desc:'Lily Kravets — expense reimbursement',detail:'Check 1251 — 314 W Norris (property manager expense)',amt:-268,type:'Expense',qb:'Repairs & Maintenance',cls:'314 W Norris St',chk:'1251',st:'matched'},
+];
+
+// deduplicate by combining the duplicate 1251/1182 entries (they were entered twice above)
+const TXNS = ALL.filter((t,i,arr) => {
+  if((t.chk==='1182'||t.chk==='1251') && t.mo==='mar'){
+    const first = arr.findIndex(x=>x.chk===t.chk && x.mo==='mar');
+    return i===first;
+  }
+  return true;
+});
+
+const btypes={'Liability':'b-liability','Expense':'b-expense','Income':'b-income','Asset':'b-asset','Equity':'b-equity','Refi':'b-refi','Unknown':'b-review','Mixed':'b-review','Interco':'b-interco'};
+let cf='all';
+
+function render(){
+  const rows=TXNS.filter(t=>cf==='all'||t.mo===cf);
+  document.getElementById('tbody').innerHTML=rows.map(t=>`
+    <tr>
+      <td style="color:#777;white-space:nowrap">${t.date}</td>
+      <td><span class="tag">${t.mo.charAt(0).toUpperCase()+t.mo.slice(1)}</span></td>
+      <td>
+        <div style="font-weight:500;font-size:12px">${t.desc}</div>
+        <div class="tag">${t.detail}</div>
+      </td>
+      <td style="font-weight:500;color:${t.amt>0?'#2d6a2d':'#8a1a1a'};white-space:nowrap">
+        ${t.amt>0?'+':''}$${Math.abs(t.amt).toLocaleString('en-US',{minimumFractionDigits:2})}
+      </td>
+      <td><span class="badge ${btypes[t.type]||'b-expense'}">${t.type}</span></td>
+      <td style="color:#777;font-size:11px">${t.chk||'—'}</td>
+      <td>
+        <div style="font-size:12px">${t.qb}</div>
+        ${t.cls?`<div class="tag">${t.cls}</div>`:''}
+      </td>
+      <td><span class="badge ${t.st==='matched'?'b-matched':'b-review'}">${t.st==='matched'?'Ready':'Review'}</span></td>
+    </tr>`).join('');
+}
+
+function filterMonth(f,el){
+  cf=f;
+  document.querySelectorAll('.ab').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function show(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['txns','loans','refi','rent','props','contribs','vendors','notes','export'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===name?'block':'none';
+  });
+}
+
+function exportCSV(){
+  const headers=['Date','Month','Description','Detail','Amount','Type','Check#','QB Account','Class','Status'];
+  const rows=TXNS.map(t=>[
+    t.date,t.mo,t.desc,t.detail,
+    (t.amt>0?'+':'')+t.amt.toFixed(2),
+    t.type,t.chk||'',t.qb,t.cls||'',t.st
+  ]);
+
+  const blank=['','','','','','','','','',''];
+  const vendorHeader=['','VENDOR / 1099 TRACKER – YTD Jan–Mar 2026','','','','','','','',''];
+  const vendorCols=['Vendor Name','EIN / SSN','Address','1099 Type','Jan 2026','Feb 2026','Mar 2026','YTD Total','Threshold Met?','Notes'];
+  const vendors=[
+    ['G&J Group LLC (acct 5494)','61-1570442','1363 Buttonwood Dr, Southampton PA 18966','1099-NEC','$20,000.00','$40,000.00','$13,000.00','$73,000.00','Yes (>$600)','All capitalized – Grays Ave & Berks St construction'],
+    ['Andrii Pasichnyk','TBD – collect W-9','TBD – collect W-9','1099-NEC','$3,300.00','$4,180.00','$4,180.00','$11,660.00','Yes (>$600)','Recurring labor – 5461 W Berks St'],
+    ['Alexoff Co','TBD – collect W-9','TBD – collect W-9','1099-NEC','$6,260.00','$2,537.00','$1,500.00','$10,297.00','Yes (>$600)','Labor – Grays Ave & Berks St'],
+    ['Piotr Keraz','TBD – collect W-9','TBD – collect W-9','1099-NEC','$6,100.00','$2,500.00','$1,500.00','$10,100.00','Yes (>$600)','Labor – Grays Ave & Berks St'],
+    ['Jupiter 91 Inc','TBD – collect W-9','TBD – collect W-9','1099-NEC','$4,000.00','','$4,000.00','$8,000.00','Yes (>$600)','Rough-in work – Grays Ave & Berks St'],
+    ['BSZ Group','TBD – collect W-9','TBD – collect W-9','1099-NEC','$7,700.00','','','$7,700.00','Yes (>$600)','Heater install – 5461 W Berks St'],
+    ['KAS Painting','TBD – collect W-9','TBD – collect W-9','1099-NEC','','$3,650.00','','$3,650.00','Yes (>$600)','Painting – 5461 W Berks St'],
+    ['Grande Choice','TBD – collect W-9','TBD – collect W-9','1099-NEC','','','$4,265.00','$4,265.00','Yes (>$600)','Countertops – 5461 W Berks St'],
+    ['Sole Construction','TBD – collect W-9','TBD – collect W-9','1099-NEC','$5,000.00','','','$5,000.00','Yes (>$600)','Carpentry – 507 W Dauphin St'],
+    ['MSC LTD','TBD – collect W-9','TBD – collect W-9','1099-NEC','$1,685.00','$1,855.00','','$3,540.00','Yes (>$600)','Kitchen & vanity – 5746 Grays Ave'],
+    ['Express Builders Inc','TBD – collect W-9','TBD – collect W-9','1099-NEC','$2,600.00','','','$2,600.00','Yes (>$600)','5461 W Berks St'],
+    ['Star Builders Inc','TBD – collect W-9','TBD – collect W-9','1099-NEC','$1,530.00','','','$1,530.00','Yes (>$600)','5746 Grays Ave'],
+    ['Diamond State Insurance Co','TBD – collect W-9','TBD – collect W-9','1099-NEC','','','$2,176.00','$2,176.00','Yes (>$600)','Insurance – 5461 W Berks St (acct 4001740160)'],
+    ['Commons & Common (legal)','TBD – collect W-9','TBD – collect W-9','1099-NEC','$1,435.00','','','$1,435.00','Yes (>$600)','Legal – 5746 Grays Ave'],
+    ['Joe Keenan','TBD – collect W-9','TBD – collect W-9','1099-NEC','','$275.00','','$275.00','No (<$600)','Recording/legal fee – 7338 N 20th St'],
+    ['Lily Kravets','TBD – collect W-9','TBD – collect W-9','1099-NEC','','','$268.00','$268.00','No (<$600)','Expense reimbursement – 314 W Norris St'],
+  ];
+
+  const allRows=[headers,...rows,blank,vendorHeader,vendorCols,...vendors];
+  const csv=allRows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='GJ_Holdings_JanMar2026_FINAL.csv';
+  a.click();
+}
+
+render();
+</script>
+</body>
+</html>

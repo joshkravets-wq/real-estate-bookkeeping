@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+electron/credentials.json
+electron/token.json
+.env
+*.local
+setup-credentials.sh

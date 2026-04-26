@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>10th Fairmount LLC — February 2026 (FINAL)</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;font-size:14px;color:#1a1a1a;background:#f5f5f3;padding:1.5rem}
+h1{font-size:18px;font-weight:500;margin-bottom:4px}
+.sub{font-size:13px;color:#666;margin-bottom:1.25rem}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.metric{background:#eeecea;border-radius:8px;padding:.8rem 1rem}
+.metric-label{font-size:12px;color:#777;margin-bottom:3px}
+.metric-value{font-size:22px;font-weight:500}
+.green{color:#2d6a2d}.amber{color:#8a5c00}
+.tabs{display:flex;gap:4px;border-bottom:1px solid #ddd;margin-bottom:1rem;flex-wrap:wrap}
+.tab{padding:7px 14px;font-size:13px;cursor:pointer;color:#666;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:500}
+.card{background:#fff;border:0.5px solid #ddd;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1rem;overflow-x:auto}
+.badge{display:inline-block;font-size:11px;padding:2px 6px;border-radius:4px;font-weight:500;white-space:nowrap}
+.b-matched{background:#e6f4e6;color:#1a5c1a}
+.b-review{background:#fef3e2;color:#7a4a00}
+.b-asset{background:#eeeafe;color:#3a2a8a}
+.b-income{background:#e2eefa;color:#1a3a6a}
+.b-expense{background:#f0efec;color:#3a3a3a}
+.b-liability{background:#fdeef6;color:#6a1a4a}
+.b-equity{background:#e2f5ee;color:#085041}
+.b-sale{background:#fff0e0;color:#7a3a00}
+.b-interco{background:#fdeef6;color:#6a1a4a}
+.tag{display:inline-block;font-size:11px;padding:1px 5px;border-radius:3px;background:#f0efec;color:#666;border:0.5px solid #ddd;margin-top:2px;white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+th{text-align:left;padding:6px 8px;color:#777;font-weight:500;border-bottom:1px solid #eee;font-size:11px;white-space:nowrap}
+td{padding:6px 8px;border-bottom:0.5px solid #eee;vertical-align:top;overflow:hidden;text-overflow:ellipsis}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf9}
+.warn{background:#fef3e2;border:0.5px solid #f5c842;border-radius:6px;padding:.75rem 1rem;font-size:13px;color:#7a4a00;margin-bottom:1rem}
+.info{background:#e8f0fe;border:0.5px solid #aac4f5;border-radius:6px;padding:.75rem 1rem;font-size:13px;color:#1a3a6a;margin-bottom:1rem}
+.ok{background:#e6f4e6;border:0.5px solid #86c486;border-radius:6px;padding:.75rem 1rem;font-size:13px;color:#1a5c1a;margin-bottom:1rem}
+.note{background:#f5f5f3;border:0.5px solid #ddd;border-radius:6px;padding:.75rem 1rem;font-size:12px;color:#555;margin-bottom:.75rem}
+.srow{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:0.5px solid #eee}
+.srow:last-child{border-bottom:none;font-weight:500}
+.ri{display:flex;align-items:center;font-size:13px;margin-bottom:7px}
+.rdot{width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-right:8px}
+.shdr{font-size:11px;font-weight:500;color:#777;text-transform:uppercase;letter-spacing:.04em;margin:1rem 0 .5rem;padding-bottom:4px;border-bottom:0.5px solid #eee}
+.ab{padding:5px 14px;font-size:13px;border-radius:6px;border:0.5px solid #ccc;cursor:pointer;background:#fff;color:#777;margin-right:8px;margin-bottom:8px}
+.ab.active{background:#eeecea;color:#1a1a1a;font-weight:500;border-color:#aaa}
+</style>
+</head>
+<body>
+<h1>10th Fairmount LLC — February 2026 <span style="font-size:13px;color:#2d6a2d;font-weight:400;margin-left:8px">✓ FINAL</span></h1>
+<div class="sub">Both accounts · TD Bank #430-3139011 + Penn Community #XXXXXXX3869</div>
+
+<div class="metrics">
+  <div class="metric"><div class="metric-label">Total transactions</div><div class="metric-value">22</div></div>
+  <div class="metric"><div class="metric-label">Categorized</div><div class="metric-value green">22</div></div>
+  <div class="metric"><div class="metric-label">Accountant needed</div><div class="metric-value amber">1</div></div>
+  <div class="metric"><div class="metric-label">Watchlist items</div><div class="metric-value amber">3</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="show('txns',this)">Transactions</button>
+  <button class="tab" onclick="show('loans',this)">Loan statements</button>
+  <button class="tab" onclick="show('sale',this)">Sale of 2030 N Lawrence</button>
+  <button class="tab" onclick="show('notes',this)">Notes & flags</button>
+  <button class="tab" onclick="show('qb',this)">QB journal entries</button>
+  <button class="tab" onclick="show('export',this)">Export</button>
+</div>
+
+<div id="tab-txns">
+<div style="margin-bottom:1rem">
+  <button class="ab active" onclick="filterAcct('all',this)">All (22)</button>
+  <button class="ab" onclick="filterAcct('penn',this)">Penn Community (18)</button>
+  <button class="ab" onclick="filterAcct('td',this)">TD Bank (4)</button>
+</div>
+<div class="card">
+<table>
+  <colgroup><col style="width:50px"><col style="width:50px"><col style="width:170px"><col style="width:80px"><col style="width:90px"><col style="width:175px"><col style="width:65px"></colgroup>
+  <thead><tr><th>Date</th><th>Acct</th><th>Description</th><th>Amount</th><th>QB type</th><th>QB account → class</th><th>Status</th></tr></thead>
+  <tbody id="tbody"></tbody>
+</table>
+</div>
+</div>
+
+<div id="tab-loans" style="display:none">
+  <div class="ok">All three loan accounts confirmed and fully resolved.</div>
+
+  <div class="shdr">1252 N 18th St — Mortgage #9000854235 — Feb 14 2026 statement ✓</div>
+  <div class="card">
+    <div class="srow"><span>Payment made</span><span>02-02-2026</span></div>
+    <div class="srow"><span>Principal</span><span style="color:#2d6a2d;font-weight:500">$696.02</span></div>
+    <div class="srow"><span>Interest</span><span style="color:#2d6a2d;font-weight:500">$1,334.80</span></div>
+    <div class="srow"><span>Total payment</span><span>$2,030.82 ✓</span></div>
+    <div class="srow"><span>Principal balance (after payment)</span><span>$337,730.41</span></div>
+    <div class="srow"><span>YTD interest paid</span><span>$2,672.25</span></div>
+    <div class="srow"><span>Interest rate</span><span>4.580%</span></div>
+  </div>
+
+  <div class="shdr">2925 Master St — Construction Loan #9001254757 — Feb 19 2026 statement ✓</div>
+  <div class="card">
+    <div class="srow"><span>Payment made</span><span>02-02-2026</span></div>
+    <div class="srow"><span>Payment amount (interest-only)</span><span>$2,266.87</span></div>
+    <div class="srow"><span>Outstanding balance</span><span>$340,000.00</span></div>
+    <div class="srow"><span>Interest rate</span><span>7.750%</span></div>
+    <div class="srow"><span>YTD interest</span><span>$4,544.02</span></div>
+    <div style="margin-top:.75rem;padding:.6rem;background:#eeeafe;border-radius:6px;font-size:12px;color:#3a2a8a"><strong>Capitalized:</strong> Per pre-stab policy, this interest is added to the 2925 Master Street fixed asset account. No expense account used.</div>
+  </div>
+
+  <div class="shdr">2030 N Lawrence St — Loan #9001409352 — paid off at closing 02-12-2026</div>
+  <div class="card" style="background:#fafaf9">
+    <div style="font-size:13px;color:#555">Fully paid off per HUD OTA-13518-PA. Payoff: $231,548.31 ($231,003.26 principal + $545.05 accrued interest). Loan is closed. QB book balance gap of $17,273.31 pending accountant review — booked to Ask My Accountant.</div>
+  </div>
+</div>
+
+<div id="tab-sale" style="display:none">
+  <div class="info">Settlement Feb 12 2026 · File OTA-13518-PA · One Team Abstract LLC · Buyer: Samantha McFadden</div>
+  <div class="card">
+    <div class="shdr">Gain on sale</div>
+    <div class="srow"><span>Sale price</span><span>$502,000.00</span></div>
+    <div class="srow"><span style="color:#666">Less: 2030 N Lawrence St asset</span><span style="color:#8a1a1a">-$339,768.98</span></div>
+    <div class="srow"><span style="color:#666">Less: 2030 N Lawrence St:Land</span><span style="color:#8a1a1a">-$11,200.00</span></div>
+    <div class="srow"><span style="color:#666">Less: closing costs</span><span style="color:#8a1a1a">-$27,185.40</span></div>
+    <div class="srow"><span>Gain on Sale of 2030 N Lawrence St</span><span style="color:#2d6a2d;font-weight:500">$123,845.62</span></div>
+  </div>
+  <div class="card">
+    <div class="shdr">Closing costs per HUD OTA-13518-PA</div>
+    <table><thead><tr><th>Item</th><th style="text-align:right;width:110px">Amount</th></tr></thead>
+    <tbody>
+      <tr><td>Pro-rated city/town taxes (2/13–12/31/26)</td><td style="text-align:right">$1,153.39</td></tr>
+      <tr><td>Notary — Liz Costello</td><td style="text-align:right">$35.00</td></tr>
+      <tr><td>Courier — One Team Abstract</td><td style="text-align:right">$15.00</td></tr>
+      <tr><td>Good Standing & Corporate Lien Cert</td><td style="text-align:right">$120.00</td></tr>
+      <tr><td>Commission — Keller Williams</td><td style="text-align:right">$12,550.00</td></tr>
+      <tr><td>Commission — Tesla Realty (flat fee listing)</td><td style="text-align:right">$350.00</td></tr>
+      <tr><td>Local Transfer Tax — Philadelphia County</td><td style="text-align:right">$8,980.78</td></tr>
+      <tr><td>State Transfer Tax — Commonwealth of PA</td><td style="text-align:right">$2,510.00</td></tr>
+      <tr><td>2026 RE Taxes — City of Philadelphia</td><td style="text-align:right">$1,329.82</td></tr>
+      <tr><td>Water to City of Philadelphia</td><td style="text-align:right">$141.41</td></tr>
+      <tr><td style="font-weight:500">Total closing costs</td><td style="text-align:right;font-weight:500">$27,185.40</td></tr>
+    </tbody></table>
+  </div>
+  <div class="card" style="background:#fafaf9">
+    <div class="shdr">$5,000 water escrow — pending receivable</div>
+    <div style="font-size:13px;color:#555">Held by City of Philadelphia at closing. When received: DR Penn Community #3869 / CR Refund from title company.</div>
+  </div>
+</div>
+
+<div id="tab-notes" style="display:none">
+  <div class="shdr">Pending items — watch for these</div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:4px">1. Construction loan book balance gap — $17,273.31</div>
+    <div class="note">HUD payoff was $231,548.31. QB book balance shows $214,275. Difference $17,273.31 likely represents unrecorded construction draws or capitalized interest not yet posted. Booked to "Ask My Accountant" — resolve before closing out the liability account.</div>
+    <div style="font-weight:500;margin-bottom:4px">2. $5,000 water escrow refund</div>
+    <div class="note">Held by City of Philadelphia per HUD. Expected March/April. Post when deposit arrives: DR Penn Community #3869 / CR Refund from title company.</div>
+    <div style="font-weight:500;margin-bottom:4px">3. Steve Kravets $52,500 distribution</div>
+    <div class="note">Steve's draw will appear on the March 2026 Penn Community statement. Route to Steve Kravets Capital:Draws when it posts.</div>
+  </div>
+
+  <div class="shdr">Property ownership — intercompany notes</div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:6px">1008 Fairmount Ave — Veit LLC, paid by 10th Fairmount</div>
+    <div class="note">Per Properties Owned doc, 1008 Fairmount belongs to Veit LLC. 10th Fairmount continues to pay stormwater as part of the plan to consolidate all 5 Fairmount lots into one parcel under 10th Fairmount LLC. <strong>Current treatment:</strong> Book stormwater for 1008 as Due from Veit LLC (intercompany receivable). Clear when consolidation completes and ownership transfers. Amount is $21.64/quarter — immaterial, but tracked cleanly this way.</div>
+    <div style="font-weight:500;margin-bottom:6px;margin-top:1rem">1010 Fairmount Ave — Phily Properties LLC, paid by 10th Fairmount</div>
+    <div class="note">$2,248.08 Phila Dept Rev tax paid 2/11 from 10th Fairmount TD Bank was for Phily Properties' lot. <strong>Treatment:</strong> Due from Phily Properties LLC on 10th Fairmount's books. Phily Properties will reimburse. When entering Phily Properties' books separately, post as Due to 10th Fairmount LLC.</div>
+  </div>
+</div>
+
+<div id="tab-qb" style="display:none">
+  <div class="ok">All entries are final. One item (loan gap $17,273.31) requires accountant input before closing.</div>
+
+  <div class="shdr">TD Bank — February 2026</div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Stormwater (2/10) + property tax (2/11)</div>
+    <table><thead><tr><th>Account</th><th style="width:85px">Debit</th><th style="width:85px">Credit</th><th style="width:100px">Class</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>1012 FAIRMOUNT AVENUE</td><td>$21.64</td><td></td><td></td><td>Stormwater 2/10 — 10th Fairmount owns</td></tr>
+      <tr><td>1008R Fairmount</td><td>$21.64</td><td></td><td></td><td>Stormwater 2/10 — 10th Fairmount owns</td></tr>
+      <tr><td>Due from Veit LLC</td><td>$21.64</td><td></td><td></td><td>Stormwater 2/10 — 1008 Fairmount (Veit LLC) — reimbursable</td></tr>
+      <tr><td>Due from Phily Properties LLC</td><td>$2,248.08</td><td></td><td></td><td>Phila Dept Rev tax 2/11 — 1010 Fairmount (Phily Properties) — reimbursable</td></tr>
+      <tr><td style="color:#666">TD Bank #430-3139011</td><td></td><td>$2,313.00</td><td></td><td></td></tr>
+    </tbody></table>
+  </div>
+
+  <div class="shdr">Penn Community — February 2026</div>
+
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Loan payments (2/2)</div>
+    <table><thead><tr><th>Account</th><th style="width:85px">Debit</th><th style="width:85px">Credit</th><th style="width:110px">Class</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>PCB Loan - 1252 N 18 St</td><td>$696.02</td><td></td><td></td><td>Mortgage principal</td></tr>
+      <tr><td>Interest Expense</td><td>$1,334.80</td><td></td><td>1252 N 18th St</td><td>Mortgage interest</td></tr>
+      <tr><td>2925 Master Street</td><td>$2,266.87</td><td></td><td></td><td>Construction loan interest — capitalized</td></tr>
+      <tr><td style="color:#666">Penn Community #3869</td><td></td><td>$4,297.69</td><td></td><td></td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Water bills (2/2)</div>
+    <table><thead><tr><th>Account</th><th style="width:85px">Debit</th><th style="width:85px">Credit</th><th style="width:110px">Class</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>Water</td><td>$59.33</td><td></td><td>1252 N 18th St</td><td></td></tr>
+      <tr><td>Water</td><td>$84.62</td><td></td><td>1252 N 18th St</td><td></td></tr>
+      <tr><td style="color:#666">Penn Community #3869</td><td></td><td>$143.95</td><td></td><td></td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Rental income (2/4)</div>
+    <table><thead><tr><th>Account</th><th style="width:85px">Debit</th><th style="width:85px">Credit</th><th style="width:110px">Class</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>Penn Community #3869</td><td>$2,960.00</td><td></td><td></td><td></td></tr>
+      <tr><td style="color:#666">Rental Income</td><td></td><td>$1,710.00</td><td>1252 N 18th St</td><td>Robin Eli direct transfer</td></tr>
+      <tr><td style="color:#666">Rental Income</td><td></td><td>$1,250.00</td><td>1252 N 18th St</td><td>RentRedi deposit</td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Pre-stab costs (2/11, 2/13)</div>
+    <table><thead><tr><th>Account</th><th style="width:85px">Debit</th><th style="width:85px">Credit</th><th style="width:110px">Class</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>2925 Master Street</td><td>$155.93</td><td></td><td></td><td>Philadelphia Gas 2/11 — capitalized</td></tr>
+      <tr><td>2925 Master Street</td><td>$21.64</td><td></td><td></td><td>Stormwater 2/13 — capitalized</td></tr>
+      <tr><td>2030 N Lawrence St</td><td>$139.00</td><td></td><td></td><td>Phila L&I permit 2/13</td></tr>
+      <tr><td style="color:#666">Penn Community #3869</td><td></td><td>$316.57</td><td></td><td></td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Sale of 2030 N Lawrence St (2/14)</div>
+    <table><thead><tr><th>Account</th><th style="width:90px">Debit</th><th style="width:90px">Credit</th><th style="width:100px">Class</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>Penn Community #3869</td><td>$240,573.07</td><td></td><td></td><td>Sale proceeds wire</td></tr>
+      <tr><td>Construction Loan 2030 N Lawrence</td><td>$214,275.00</td><td></td><td></td><td>Payoff — QB book balance</td></tr>
+      <tr><td>Professional Fees</td><td>$27,185.40</td><td></td><td></td><td>Closing costs per HUD OTA-13518-PA</td></tr>
+      <tr><td style="color:#8a5c00">⚠ Ask My Accountant</td><td>$17,273.31</td><td></td><td></td><td>Loan book balance gap — pending</td></tr>
+      <tr><td style="color:#666">2030 N Lawrence St</td><td></td><td>$339,768.98</td><td></td><td>Clear asset</td></tr>
+      <tr><td style="color:#666">2030 N Lawrence St:Land</td><td></td><td>$11,200.00</td><td></td><td>Clear land</td></tr>
+      <tr><td style="color:#666">Gain on Sale of 2030 N Lawrence St</td><td></td><td>$123,845.62</td><td></td><td></td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Member distributions (2/20, 2/25, 2/26)</div>
+    <table><thead><tr><th>Account</th><th style="width:90px">Debit</th><th style="width:90px">Credit</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>Josh Kravets Capital:Draw</td><td>$52,500.00</td><td></td><td>Check #145 — 2/20</td></tr>
+      <tr><td>Gene Kravets Capital:Draws</td><td>$52,500.00</td><td></td><td>Check #1068 — 2/25</td></tr>
+      <tr><td>Boris Capital:Draw</td><td>$52,500.00</td><td></td><td>Check #135 — 2/26</td></tr>
+      <tr><td style="color:#666">Penn Community #3869</td><td></td><td>$157,500.00</td><td></td></tr>
+    </tbody></table>
+  </div>
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:8px;font-size:13px">Capital contributions + payoff refund (2/27)</div>
+    <table><thead><tr><th>Account</th><th style="width:90px">Debit</th><th style="width:90px">Credit</th><th>Memo</th></tr></thead>
+    <tbody>
+      <tr><td>Penn Community #3869</td><td>$3,495.50</td><td></td><td>2× $1,500 deposits + $495.50 payoff refund</td></tr>
+      <tr><td style="color:#666">Josh Kravets Capital:Contribution</td><td></td><td>$750.00</td><td>$375 × 2 deposits</td></tr>
+      <tr><td style="color:#666">Gene Kravets Capital:Contribution</td><td></td><td>$750.00</td><td>$375 × 2 deposits</td></tr>
+      <tr><td style="color:#666">Steve Kravets Capital:Contribution</td><td></td><td>$750.00</td><td>$375 × 2 deposits</td></tr>
+      <tr><td style="color:#666">Boris Capital:Contribution</td><td></td><td>$750.00</td><td>$375 × 2 deposits</td></tr>
+      <tr><td style="color:#666">Construction Loan 2030 N Lawrence</td><td></td><td>$495.50</td><td>Payoff refund — reduce remaining balance</td></tr>
+    </tbody></table>
+  </div>
+</div>
+
+<div id="tab-export" style="display:none">
+  <div class="card">
+    <div style="font-weight:500;margin-bottom:10px">Final checklist</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>All 22 transactions categorized</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>Mortgage split confirmed: $696.02 principal / $1,334.80 interest (stmt 02-14-2026)</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>Construction loan $2,266.87 capitalized to 2925 Master Street asset</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>Sale of 2030 N Lawrence — gain $123,845.62 — fully journaled</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>3 member draws: Josh, Gene, Boris $52,500 each (Steve in March)</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>2× $1,500 contributions split 4 ways ($750 per member total)</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>1010 Fairmount tax → Due from Phily Properties LLC</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>1008 Fairmount stormwater → Due from Veit LLC</div>
+    <div class="ri"><span class="rdot" style="background:#e6f4e6;color:#1a5c1a">✓</span>TD balance $7,459.44 · Penn balance $89,626.66</div>
+    <div class="ri"><span class="rdot" style="background:#fef3e2;color:#7a4a00">!</span>Loan book gap $17,273.31 → Ask My Accountant</div>
+    <div class="ri"><span class="rdot" style="background:#fef3e2;color:#7a4a00">!</span>$5,000 water escrow → watch for deposit (March/April)</div>
+    <div class="ri"><span class="rdot" style="background:#fef3e2;color:#7a4a00">!</span>Steve Kravets $52,500 draw → will appear in March</div>
+    <br>
+    <button onclick="exportCSV()" style="font-size:13px;padding:7px 16px;border-radius:6px;border:0.5px solid #ccc;background:#fff;cursor:pointer">⬇ Export CSV for QB import</button>
+  </div>
+</div>
+
+<script>
+const txns=[
+  {date:'2/2',acct:'Penn',desc:'Mortgage principal',detail:'PCB loan 9000854235 — stmt confirmed',amt:-696.02,type:'Liability',qb:'PCB Loan - 1252 N 18 St',cls:'',status:'matched'},
+  {date:'2/2',acct:'Penn',desc:'Mortgage interest',detail:'PCB loan 9000854235 — stmt confirmed',amt:-1334.80,type:'Expense',qb:'Interest Expense',cls:'1252 N 18th St',status:'matched'},
+  {date:'2/2',acct:'Penn',desc:'Construction loan — capitalized',detail:'Loan 9001254757 — 2925 Master St',amt:-2266.87,type:'Asset',qb:'2925 Master Street',cls:'',status:'matched'},
+  {date:'2/2',acct:'Penn',desc:'Water bill $59.33',detail:'CITYOFPHILA 215-685-6300',amt:-59.33,type:'Expense',qb:'Water',cls:'1252 N 18th St',status:'matched'},
+  {date:'2/2',acct:'Penn',desc:'Water bill $84.62',detail:'CITYOFPHILA 215-685-6300',amt:-84.62,type:'Expense',qb:'Water',cls:'1252 N 18th St',status:'matched'},
+  {date:'2/4',acct:'Penn',desc:'Rent — Robin Eli',detail:'Direct P2P transfer',amt:1710,type:'Income',qb:'Rental Income',cls:'1252 N 18th St',status:'matched'},
+  {date:'2/4',acct:'Penn',desc:'Rent — RentRedi',detail:'RentRedi.com deposit',amt:1250,type:'Income',qb:'Rental Income',cls:'1252 N 18th St',status:'matched'},
+  {date:'2/11',acct:'Penn',desc:'Philadelphia Gas — capitalized',detail:'Moneyline bill pmt — 2925 Master',amt:-155.93,type:'Asset',qb:'2925 Master Street',cls:'',status:'matched'},
+  {date:'2/13',acct:'Penn',desc:'Stormwater — capitalized',detail:'CITYOFPHILA — 2925 Master',amt:-21.64,type:'Asset',qb:'2925 Master Street',cls:'',status:'matched'},
+  {date:'2/13',acct:'Penn',desc:'Phila L&I permit fee',detail:'2030 N Lawrence — capitalized',amt:-139,type:'Asset',qb:'2030 N Lawrence St',cls:'',status:'matched'},
+  {date:'2/14',acct:'Penn',desc:'Sale — 2030 N Lawrence',detail:'Title proceeds wire',amt:240573.07,type:'Income',qb:'Penn Community #3869',cls:'',status:'matched'},
+  {date:'2/20',acct:'Penn',desc:'Check #145 — Josh draw',detail:'Member distribution',amt:-52500,type:'Equity',qb:'Josh Kravets Capital:Draw',cls:'',status:'matched'},
+  {date:'2/25',acct:'Penn',desc:'Check #1068 — Gene draw',detail:'Member distribution',amt:-52500,type:'Equity',qb:'Gene Kravets Capital:Draws',cls:'',status:'matched'},
+  {date:'2/26',acct:'Penn',desc:'Check #135 — Boris draw',detail:'Member distribution',amt:-52500,type:'Equity',qb:'Boris Capital:Draw',cls:'',status:'matched'},
+  {date:'2/27',acct:'Penn',desc:'Capital contribution',detail:'Mobile deposit $1,500 ÷ 4 members',amt:1500,type:'Equity',qb:'Steve Kravets Capital:Contribution',cls:'',status:'matched'},
+  {date:'2/27',acct:'Penn',desc:'Capital contribution',detail:'Mobile deposit $1,500 ÷ 4 members',amt:1500,type:'Equity',qb:'Steve Kravets Capital:Contribution',cls:'',status:'matched'},
+  {date:'2/27',acct:'Penn',desc:'Payoff refund — 2030 N Lawrence',detail:'Mobile deposit $495.50',amt:495.50,type:'Liability',qb:'Construction Loan 2030 N Lawrence',cls:'',status:'matched'},
+  {date:'2/10',acct:'TD',desc:'Stormwater — 1012 Fairmount',detail:'CITYOFPHILA — 10th Fairmount',amt:-21.64,type:'Asset',qb:'1012 FAIRMOUNT AVENUE',cls:'',status:'matched'},
+  {date:'2/10',acct:'TD',desc:'Stormwater — 1008R Fairmount',detail:'CITYOFPHILA — 10th Fairmount',amt:-21.64,type:'Asset',qb:'1008R Fairmount',cls:'',status:'matched'},
+  {date:'2/10',acct:'TD',desc:'Stormwater — 1008 Fairmount',detail:'CITYOFPHILA — Veit LLC (interco)',amt:-21.64,type:'Interco',qb:'Due from Veit LLC',cls:'',status:'note'},
+  {date:'2/11',acct:'TD',desc:'Phila Dept Rev tax — 1010 Fairmount',detail:'Phily Properties LLC (interco)',amt:-2248.08,type:'Interco',qb:'Due from Phily Properties LLC',cls:'',status:'matched'},
+];
+let cf='all';
+const btypes={'Liability':'b-liability','Expense':'b-expense','Income':'b-income','Asset':'b-asset','Equity':'b-equity','Sale':'b-sale','Interco':'b-interco'};
+function render(){
+  const rows=txns.filter(t=>cf==='all'||t.acct.toLowerCase()===cf);
+  document.getElementById('tbody').innerHTML=rows.map(t=>`
+    <tr>
+      <td style="color:#777">${t.date}</td>
+      <td><span class="tag">${t.acct}</span></td>
+      <td><div style="font-weight:500;font-size:12px">${t.desc}</div><div class="tag">${t.detail}</div></td>
+      <td style="font-weight:500;color:${t.amt>0?'#2d6a2d':'#8a1a1a'}">${t.amt>0?'+':''}$${Math.abs(t.amt).toLocaleString('en-US',{minimumFractionDigits:2})}</td>
+      <td><span class="badge ${btypes[t.type]||'b-expense'}">${t.type}</span></td>
+      <td><div style="font-size:12px">${t.qb}</div>${t.cls?`<div class="tag">Class: ${t.cls}</div>`:''}</td>
+      <td><span class="badge ${t.status==='matched'?'b-matched':t.status==='note'?'b-review':'b-review'}">${t.status==='matched'?'Ready':t.status==='note'?'Note':'Review'}</span></td>
+    </tr>`).join('');
+}
+function filterAcct(f,el){cf=f;document.querySelectorAll('.ab').forEach(b=>b.classList.remove('active'));el.classList.add('active');render();}
+function show(name,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');['txns','loans','sale','notes','qb','export'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===name?'block':'none';});}
+function exportCSV(){
+  const rows=[
+    ['Date','LLC','Bank','Account','Description','Debit','Credit','QB Account','QB Type','Class','Status','Notes'],
+    ['2/2/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Mortgage principal 1252 N 18th','696.02','','PCB Loan - 1252 N 18 St','Liability','','Ready','Stmt 02-14-2026 confirmed · loan #9000854235 · $696.02 principal'],
+    ['2/2/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Mortgage interest 1252 N 18th','1334.80','','Interest Expense','Expense','1252 N 18th St','Ready','Stmt 02-14-2026 confirmed'],
+    ['2/2/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Construction loan 2925 Master — capitalized','2266.87','','2925 Master Street','Asset','','Ready','Interest-only; capitalized per pre-stab policy'],
+    ['2/2/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Water 59.33','59.33','','Water','Expense','1252 N 18th St','Ready',''],
+    ['2/2/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Water 84.62','84.62','','Water','Expense','1252 N 18th St','Ready',''],
+    ['2/4/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Rent Robin Eli','','1710.00','Rental Income','Income','1252 N 18th St','Ready',''],
+    ['2/4/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Rent RentRedi','','1250.00','Rental Income','Income','1252 N 18th St','Ready',''],
+    ['2/11/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Philadelphia Gas 2925 Master','155.93','','2925 Master Street','Asset','','Ready','Capitalized pre-stab'],
+    ['2/13/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Stormwater 2925 Master','21.64','','2925 Master Street','Asset','','Ready','Capitalized pre-stab'],
+    ['2/13/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Phila L&I permit 2030 N Lawrence','139.00','','2030 N Lawrence St','Asset','','Ready',''],
+    ['2/14/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Sale proceeds 2030 N Lawrence','','240573.07','Penn Community #3869','Sale','','Ready','See journal entry rows below'],
+    ['2/14/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','JOURNAL: Clear 2030 N Lawrence asset','339768.98','','2030 N Lawrence St','Asset','','Ready',''],
+    ['2/14/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','JOURNAL: Clear 2030 N Lawrence:Land','11200.00','','2030 N Lawrence St:Land','Asset','','Ready',''],
+    ['2/14/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','JOURNAL: Closing costs HUD OTA-13518-PA','27185.40','','Professional Fees','Expense','','Ready',''],
+    ['2/14/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','JOURNAL: Gain on sale','','123845.62','Gain on Sale of 2030 N Lawrence St','Other Income','','Ready',''],
+    ['2/14/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','JOURNAL: Mortgage payoff book balance','214275.00','','Construction Loan 2030 N Lawrence','Liability','','ACCT NEEDED','Gap $17273.31 — Ask My Accountant'],
+    ['2/20/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Check 145 Josh Kravets draw','52500.00','','Josh Kravets Capital:Draw','Equity','','Ready',''],
+    ['2/25/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Check 1068 Gene Kravets draw','52500.00','','Gene Kravets Capital:Draws','Equity','','Ready',''],
+    ['2/26/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Check 135 Boris draw','52500.00','','Boris Capital:Draw','Equity','','Ready',''],
+    ['2/27/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Capital contribution deposit 1','','1500.00','4× Capital:Contribution $375 each','Equity','','Ready','Josh Gene Steve Boris'],
+    ['2/27/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Capital contribution deposit 2','','1500.00','4× Capital:Contribution $375 each','Equity','','Ready','Josh Gene Steve Boris'],
+    ['2/27/26','10th Fairmount LLC','Penn Community','XXXXXXX3869','Payoff refund 2030 N Lawrence','','495.50','Construction Loan 2030 N Lawrence','Liability','','Ready',''],
+    ['2/10/26','10th Fairmount LLC','TD Bank','4303139011','Stormwater 1012 Fairmount','21.64','','1012 FAIRMOUNT AVENUE','Asset','','Ready',''],
+    ['2/10/26','10th Fairmount LLC','TD Bank','4303139011','Stormwater 1008R Fairmount','21.64','','1008R Fairmount','Asset','','Ready',''],
+    ['2/10/26','10th Fairmount LLC','TD Bank','4303139011','Stormwater 1008 Fairmount — Veit LLC','21.64','','Due from Veit LLC','Intercompany','','Note','Consolidation pending; Veit LLC reimbursable'],
+    ['2/11/26','10th Fairmount LLC','TD Bank','4303139011','Phila Dept Rev tax 1010 Fairmount — Phily Props','2248.08','','Due from Phily Properties LLC','Intercompany','','Ready','Phily Properties reimbursing'],
+  ];
+  const blank=['','','','','','','','','','','',''];
+  const vendorHeader=['','VENDOR / 1099 TRACKER','','','','','','','','','',''];
+  const vendorCols=['Vendor Name','EIN / SSN','Address','1099 Type','Jan 2026','Feb 2026','Mar 2026','YTD Total','Threshold Met?','Notes','',''];
+  const vendors=[
+    ['Eleonora Larinese','183-82-1294','1 Teak Court, Cherry Hill NJ 08003','1099-NEC','$2,150.00','','','$2,150.00','Yes (>$600)','Check #134 Jan – property work 1252 N 18th St','',''],
+    ['G&J Group LLC','61-1570442','1363 Buttonwood Dr, Southampton PA 18966','1099-NEC','$3,500.00','','','$3,500.00','Yes (>$600)','Contractor payments – 2925 Master St capitalized','',''],
+  ];
+  const allRows=[...rows,blank,vendorHeader,vendorCols,...vendors];
+  const csv=allRows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='10th_Fairmount_Feb2026_FINAL.csv';a.click();
+}
+render();
+</script>
+</body>
+</html>

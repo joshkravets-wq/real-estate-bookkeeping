@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Connect Bank Account</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: system-ui, sans-serif;
+  background: #f5f5f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+.card {
+  background: #fff;
+  border: 0.5px solid #ddd;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+h1 { font-size: 18px; font-weight: 500; margin-bottom: 6px; }
+.sub { font-size: 13px; color: #777; margin-bottom: 1.5rem; }
+.bank-list { margin-bottom: 1.5rem; }
+.bank-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border: 0.5px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.bank-item .name { font-weight: 500; }
+.bank-item .acct { color: #999; font-size: 11px; }
+.badge {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+.connected { background: #e6f4e6; color: #1a5c1a; }
+.pending { background: #fef3e2; color: #7a4a00; }
+.btn {
+  width: 100%;
+  padding: 11px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.btn-primary { background: #1a1a1a; color: #fff; }
+.btn-primary:hover { background: #333; }
+.btn-secondary { background: #f0efec; color: #555; }
+.btn-secondary:hover { background: #e5e4e1; }
+.status { font-size: 12px; color: #777; text-align: center; margin-top: 1rem; }
+.status.success { color: #1a5c1a; }
+.status.error { color: #8a1a1a; }
+.loading { opacity: 0.6; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Connect Bank Accounts</h1>
+  <div class="sub">Link your bank accounts to pull transactions automatically.</div>
+
+  <div class="bank-list">
+    <div class="bank-item">
+      <div>
+        <div class="name">TD Bank</div>
+        <div class="acct">10th Fairmount LLC · #430-3139011</div>
+      </div>
+      <span class="badge" id="td-badge">Not connected</span>
+    </div>
+    <div class="bank-item">
+      <div>
+        <div class="name">Penn Community Bank</div>
+        <div class="acct">10th Fairmount LLC · #XXXXXXX3869</div>
+      </div>
+      <span class="badge pending">CSV export</span>
+    </div>
+    <div class="bank-item">
+      <div>
+        <div class="name">Penn Community Bank</div>
+        <div class="acct">GJ Holdings LLC · #XXXXXXX3395</div>
+      </div>
+      <span class="badge pending">CSV export</span>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" id="connect-btn" onclick="connectTD()">
+    Connect TD Bank
+  </button>
+  <button class="btn btn-secondary" onclick="window.close()">
+    Cancel
+  </button>
+
+  <div class="status" id="status"></div>
+</div>
+
+<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+<script>
+const CLIENT_ID = '69ed6ed21d34f2000d175d73';
+const PLAID_ENV = 'sandbox';
+
+async function connectTD() {
+  const btn = document.getElementById('connect-btn');
+  const status = document.getElementById('status');
+  btn.classList.add('loading');
+  btn.textContent = 'Connecting...';
+  status.textContent = 'Getting link token...';
+  status.className = 'status';
+
+  try {
+    // Get link token from Plaid
+    const resp = await fetch('https://sandbox.plaid.com/link/token/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: CLIENT_ID,
+        secret: await getSecret(),
+        user: { client_user_id: 'josh-kravets' },
+        client_name: 'RE Bookkeeping',
+        products: ['transactions'],
+        country_codes: ['US'],
+        language: 'en',
+      })
+    });
+
+    const data = await resp.json();
+    if (data.error_code) throw new Error(data.error_message);
+
+    status.textContent = 'Opening TD Bank login...';
+
+    // Launch Plaid Link
+    const handler = Plaid.create({
+      token: data.link_token,
+      onSuccess: async (publicToken, metadata) => {
+        status.textContent = 'Authorizing...';
+        await saveConnection(publicToken, metadata, 'td-bank-10th-fairmount');
+      },
+      onExit: (err) => {
+        if (err) {
+          status.textContent = 'Connection cancelled or failed.';
+          status.className = 'status error';
+        } else {
+          status.textContent = 'Connection cancelled.';
+        }
+        btn.classList.remove('loading');
+        btn.textContent = 'Connect TD Bank';
+      },
+    });
+
+    handler.open();
+
+  } catch (err) {
+    status.textContent = `Error: ${err.message}`;
+    status.className = 'status error';
+    btn.classList.remove('loading');
+    btn.textContent = 'Connect TD Bank';
+  }
+}
+
+async function saveConnection(publicToken, metadata, accountKey) {
+  const status = document.getElementById('status');
+  const btn = document.getElementById('connect-btn');
+
+  try {
+    // Exchange public token for access token
+    const resp = await fetch('https://sandbox.plaid.com/item/public_token/exchange', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        client_id: CLIENT_ID,
+        secret: await getSecret(),
+        public_token: publicToken,
+      })
+    });
+
+    const data = await resp.json();
+    if (data.error_code) throw new Error(data.error_message);
+
+    // Save access token via electron API
+    if (window.electronAPI) {
+      await window.electronAPI.savePlaidToken(accountKey, data.access_token);
+    } else {
+      // Fallback: store in localStorage for dev mode
+      localStorage.setItem(`plaid_token_${accountKey}`, data.access_token);
+    }
+
+    // Update UI
+    document.getElementById('td-badge').textContent = 'Connected';
+    document.getElementById('td-badge').className = 'badge connected';
+    status.textContent = 'TD Bank connected successfully!';
+    status.className = 'status success';
+    btn.textContent = 'TD Bank Connected';
+    btn.style.background = '#1a7a1a';
+    btn.classList.remove('loading');
+
+  } catch (err) {
+    status.textContent = `Failed to save connection: ${err.message}`;
+    status.className = 'status error';
+    btn.classList.remove('loading');
+    btn.textContent = 'Connect TD Bank';
+  }
+}
+
+// Read secret from env via electron, or fall back for dev
+async function getSecret() {
+  if (window.electronAPI && window.electronAPI.getEnv) {
+    return await window.electronAPI.getEnv('PLAID_SECRET');
+  }
+  return '7d55c512aeab4149458235da7a999d';
+}
+
+// Check if already connected on load
+window.onload = () => {
+  const existing = localStorage.getItem('plaid_token_td-bank-10th-fairmount');
+  if (existing) {
+    document.getElementById('td-badge').textContent = 'Connected';
+    document.getElementById('td-badge').className = 'badge connected';
+    document.getElementById('connect-btn').textContent = 'Reconnect TD Bank';
+  }
+};
+</script>
+</body>
+</html>
