@@ -851,6 +851,33 @@ function dl(rows, filename) {
 
 // Init
 renderTxns('all');
+
+// ═══════ BANK CONNECTION ════════════════════════════════════════════════════
+async function connectBank() {
+  if (window.electronAPI && window.electronAPI.openConnectBank) {
+    await window.electronAPI.openConnectBank();
+    checkBankStatus();
+  } else {
+    alert('Bank connection requires the desktop app.');
+  }
+}
+
+async function checkBankStatus() {
+  if (!window.electronAPI) return;
+  try {
+    const token = await window.electronAPI.getPlaidToken('td-bank-10th-fairmount');
+    const btn = document.getElementById('connect-bank-btn');
+    const status = document.getElementById('bank-status');
+    if (token && btn && status) {
+      btn.textContent = '✓ TD Connected';
+      btn.style.color = '#6ecf6e';
+      btn.style.borderColor = '#6ecf6e';
+      if (status) status.textContent = 'Live';
+    }
+  } catch(e) { console.log('Bank status:', e); }
+}
+
+window.addEventListener('load', checkBankStatus);
 </script>
 </body>
 </html>

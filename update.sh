@@ -1,3 +1,14 @@
+#!/bin/bash
+# RE Bookkeeping — one-time sync script
+# Run this from your realestate-bookkeeping folder
+
+echo "Enter your GitHub token:"
+read -s TOKEN
+
+REPO="https://${TOKEN}@github.com/joshkravets-wq/real-estate-bookkeeping.git"
+
+# Update preload.js
+cat > electron/preload.js << 'EOF'
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -10,3 +21,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getEnv: (key) => ipcRenderer.invoke('get-env', key),
   platform: process.platform,
 });
+EOF
+
+echo "✓ preload.js updated"
+
+# Commit and push
+git add .
+git commit -m "fix: connectBank function and preload cleanup"
+git remote set-url origin "$REPO"
+git push origin main
+
+echo ""
+echo "✓ All done! Run: npm start"
