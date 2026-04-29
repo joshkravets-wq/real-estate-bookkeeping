@@ -240,10 +240,17 @@ def reconcile(
         rule = apply_bank_rules(txn, rules_module.BANK_RULES)
         if rule:
             if rule["type"] == "Transfer":
-                if "5501 to 5494" in txn.description:
-                    txn.qb_account = "PCB 5501" if txn.source_account == "PCB 5494" else "PCB 5494"
+                # Determine the other bank account by looking at entity config
+                bank_accounts = rules_module.ENTITY.get("bank_accounts", [])
+                other_accounts = [a for a in bank_accounts if a != txn.source_account]
+                txn.qb_account = other_accounts[0] if other_accounts else rule["account"]
+
+                # Rewrite description to be unambiguous about direction
+                if txn.amount > 0:
+                    direction = f"Transfer from {txn.qb_account} -> {txn.source_account}"
                 else:
-                    txn.qb_account = rule["account"]
+                    direction = f"Transfer from {txn.source_account} -> {txn.qb_account}"
+                txn.description = direction
             else:
                 txn.qb_account = rule["account"]
 
