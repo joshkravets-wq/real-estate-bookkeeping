@@ -1,9 +1,21 @@
-node_modules/
-dist/
-.DS_Store
-*.log
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Local environment
+.env
+*.token
 electron/credentials.json
 electron/token.json
-.env
-*.local
-setup-credentials.sh
+
+# Build artifacts
+dist/
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Output (keep CSVs in Drive, not in repo)
+output/
