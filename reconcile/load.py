@@ -47,7 +47,7 @@ def _csv_to_engine(csv_txn: CsvTransaction) -> EngineTransaction:
     return EngineTransaction(
         source_account=csv_txn.source_account,
         date=csv_txn.txn_date,
-        description=csv_txn.description,
+        description=csv_txn.description.replace(" | ", " "),
         amount=float(csv_txn.amount),
         raw_data={
             "memo": csv_txn.memo,

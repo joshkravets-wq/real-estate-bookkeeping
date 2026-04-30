@@ -109,6 +109,17 @@ BANK_RULES = [
         "notes": "Generic Sophia deposit. Reimbursements have specific rules above.",
     },
 
+    # Generic Contractor payment deposit (catches deposits without entity attribution).
+    # Entity-specific rules above (GJ Holdings, 10th Fairmount, Sophia) match first
+    # when the entity name is in the description; this is the fallback.
+    {
+        "name": "Generic Contractor payment deposit",
+        "match": {"description_contains": "Contractor payment"},
+        "account": "Construction Income",
+        "type": "Income",
+        "notes": "Catch-all for deposits described only as 'Contractor payment' with no entity name. Always Construction Income; no property attribution at the income level.",
+    },
+
     # Subcontractor checks - matched via Checks CSV (Claude transcribes from PDFs)
     {
         "name": "Check (look up in Checks CSV)",
@@ -125,7 +136,7 @@ BANK_RULES = [
         "account": "Subcontractors Expense",
         "class": "ASK",
         "type": "Expense",
-        "notes": "Q1 2026: all MCM ACH went to 5461 W Berks St. Verify each.",
+        "notes": "MCM is a vendor (subcontractor materials supplier). Property assignment is per-transaction; verify against expense sheets during reconciliation.",
     },
 ]
 
