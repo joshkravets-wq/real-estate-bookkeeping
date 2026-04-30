@@ -21,6 +21,7 @@ from pathlib import Path
 
 from reconcile.engine import reconcile
 from reconcile.load import load_pcb_transactions
+from reconcile.load_chase import load_chase_transactions
 from reconcile.output import write_engine_output
 
 
@@ -46,6 +47,11 @@ def main():
         default="./output",
         help="Directory to write Processor CSV + Review.txt (default: ./output)",
     )
+    parser.add_argument(
+        "--chase-csv",
+        default=None,
+        help="Path to Chase CSV export (single file). Optional; omit to skip card classification.",
+    )
     args = parser.parse_args()
 
     # 1. Load and pair PCB transactions
@@ -68,9 +74,20 @@ def main():
 
     # 3. Run engine (bank-only path; empty placeholders for the rest)
     print("Running reconcile()...")
+    # Load Chase if provided
+    if args.chase_csv:
+        print(f"Loading Chase transactions from {args.chase_csv}...")
+        card_txns = load_chase_transactions(args.chase_csv)
+        print(f"  {len(card_txns)} Chase transactions")
+        print()
+    else:
+        card_txns = []
+        print("No --chase-csv provided; skipping card classification")
+        print()
+
     classified, review_items = reconcile(
         bank_transactions=bank_txns,
-        card_transactions=[],   # No Chase/AMEX parser yet
+        card_transactions=card_txns,
         checks=[],              # No check image transcription yet
         expense_sheets={},      # No Drive sheet loader yet
         rules_module=rules_module,
