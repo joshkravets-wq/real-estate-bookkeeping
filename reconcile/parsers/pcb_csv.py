@@ -72,7 +72,7 @@ def _parse_header_lines(lines: List[str]) -> tuple[str, str]:
         raise ValueError("Could not find 'Account Number :' line in CSV header")
     if not period:
         raise ValueError("Could not find 'Date Range :' line in CSV header")
-    return full_acct[-4:], period
+    return f"PCB {full_acct[-4:]}", period
 
 
 # ---------------------------------------------------------------------------

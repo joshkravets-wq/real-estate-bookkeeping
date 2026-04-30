@@ -21,6 +21,7 @@ from pathlib import Path
 
 from reconcile.engine import reconcile
 from reconcile.load import load_pcb_transactions
+from reconcile.output import write_engine_output
 
 
 def main():
@@ -34,6 +35,16 @@ def main():
         "--pcb-dir",
         required=True,
         help="Directory containing PCB CSV exports",
+    )
+    parser.add_argument(
+        "--period",
+        required=True,
+        help="Reporting period label (e.g. 'Jan-Mar 2026')",
+    )
+    parser.add_argument(
+        "--output-dir",
+        default="./output",
+        help="Directory to write Processor CSV + Review.txt (default: ./output)",
     )
     args = parser.parse_args()
 
@@ -134,6 +145,22 @@ def main():
     print(f"\n  Classified total:  ${classified_total:>15,.2f}")
     print(f"  Review queue total: ${review_total:>15,.2f}")
     print(f"  Combined:          ${classified_total + review_total:>15,.2f}")
+
+    # 7. Write Processor CSV + Review.txt
+    print()
+    print("=" * 90)
+    print("WRITING OUTPUTS")
+    print("=" * 90)
+    paths = write_engine_output(
+        classified_transactions=classified,
+        review_items=review_items,
+        entity_name=rules_module.ENTITY.get("name", args.entity),
+        period=args.period,
+        output_dir=args.output_dir,
+        checks_csv=None,
+    )
+    for label, path in paths.items():
+        print(f"  {label}: {path}")
 
 
 if __name__ == "__main__":
