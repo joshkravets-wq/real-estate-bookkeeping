@@ -19,3 +19,6 @@ Thumbs.db
 
 # Output (keep CSVs in Drive, not in repo)
 output/
+
+# OAuth credentials and tokens (NEVER commit these)
+credentials/
