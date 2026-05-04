@@ -112,6 +112,24 @@ BANK_RULES = [
     # Generic Contractor payment deposit (catches deposits without entity attribution).
     # Entity-specific rules above (GJ Holdings, 10th Fairmount, Sophia) match first
     # when the entity name is in the description; this is the fallback.
+    # Catches deposits with informal descriptions like "need to cover credit card bill"
+    # G&J Group only receives Construction Income (no capital contributions, since G&J
+    # is a contractor, not an owning entity). Owners inject capital via owning entities,
+    # which then pay G&J as Construction Income. So any deposit on G&J's books is income.
+    {
+        "name": "Informal deposit description",
+        "match": {
+            "any_description_contains": [
+                "need to cover",
+                "to cover credit card",
+                "Internet Transfer",
+            ],
+        },
+        "account": "Construction Income",
+        "type": "Income",
+        "notes": "Catches informal deposit descriptions. G&J is contractor-only so all deposits are income.",
+    },
+
     {
         "name": "Generic Contractor payment deposit",
         "match": {"description_contains": "Contractor payment"},

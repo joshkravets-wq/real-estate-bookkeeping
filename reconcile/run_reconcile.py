@@ -187,7 +187,7 @@ def main():
     if not args.no_property_sheets and review_items:
         print()
         print("=" * 90)
-        print("PROPERTY EXPENSE SHEETS PASS (Chase only)")
+        print("PROPERTY EXPENSE SHEETS PASS (Chase + Bank checks)")
         print("=" * 90)
         try:
             print("Loading property expense sheets from Drive...")
@@ -211,11 +211,32 @@ def main():
             unmatched = 0
             still_review_after_property = []
 
+            # Patterns for G&J Group bank check matching (PCB 5494 + 5501)
+            # Observed in expense sheets: "Gj group494 ch# 191", "G&J group 5494 check 184"
+            GJ_BANK_PATTERNS = [
+                "g&j group",
+                "gj group",
+                "g&j grp",   # abbreviated form seen in expense sheets: "Gj grp 187"
+                "gj grp",    # also matches "gj grp 188", "gj grp", etc.
+                "g&j 5494",
+                "gj 5494",
+                "g&j group494",
+                "gj group494",
+            ]
+
             for item in review_items:
                 txn = item.transaction
-                # Only Chase transactions in this pass
                 src_acct = (txn.source_account or "").lower()
-                if "chase" not in src_acct:
+
+                # Determine payment method patterns based on transaction source
+                if "chase" in src_acct:
+                    pmt_patterns = None  # Use chase_only fallback
+                    use_chase = True
+                elif "pcb" in src_acct:
+                    pmt_patterns = GJ_BANK_PATTERNS
+                    use_chase = False
+                else:
+                    # Unknown source - skip
                     still_review_after_property.append(item)
                     continue
 
@@ -223,7 +244,9 @@ def main():
                 all_matches = []
                 for prop_name, entries in property_entries.items():
                     matches = match_property_transaction(
-                        txn.date, txn.amount, entries, chase_only=True
+                        txn.date, txn.amount, entries,
+                        chase_only=use_chase,
+                        payment_method_patterns=pmt_patterns,
                     )
                     for m in matches:
                         all_matches.append((prop_name, m))
@@ -237,10 +260,14 @@ def main():
                     prop_name, entry = all_matches[0]
                     # Auto-promote: tag transaction with property class
                     txn.qb_class = prop_name
-                    # Determine QB account: this is a card charge,
-                    # default Construction Costs (per CHASE CARD METHODOLOGY)
+                    # Determine QB account based on transaction source:
+                    #   Chase card charge -> Construction Costs (per CHASE CARD METHODOLOGY)
+                    #   Bank check -> Subcontractors Expense (per G&J GROUP architecture)
                     if not txn.qb_account:
-                        txn.qb_account = "Construction Costs"
+                        if "chase" in src_acct:
+                            txn.qb_account = "Construction Costs"
+                        else:
+                            txn.qb_account = "Subcontractors Expense"
                     if not txn.transaction_type:
                         txn.transaction_type = "Expense"
                     txn.classified_by = (

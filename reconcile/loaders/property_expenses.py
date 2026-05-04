@@ -233,15 +233,31 @@ def match_property_transaction(
     amount_tolerance=1.00,
     date_tolerance_days=7,
     chase_only=True,
+    payment_method_patterns=None,
 ):
+    """Find expense sheet entries matching a transaction.
+
+    Args:
+        chase_only: If True, only match rows where payment_method contains 'chase'.
+        payment_method_patterns: List of substrings (case-insensitive) any of which
+            must appear in payment_method. Used for bank-check matching.
+            If both chase_only and payment_method_patterns are set,
+            payment_method_patterns takes precedence.
+    """
     target_abs = abs(txn_amount)
     earliest = txn_date - timedelta(days=date_tolerance_days)
     latest = txn_date + timedelta(days=date_tolerance_days)
 
     matches = []
     for e in entries:
-        if chase_only and not e.is_chase():
+        # Apply payment method filter (patterns OR chase)
+        if payment_method_patterns is not None:
+            pm = (e.payment_method or "").lower()
+            if not any(p.lower() in pm for p in payment_method_patterns):
+                continue
+        elif chase_only and not e.is_chase():
             continue
+
         if not (earliest <= e.txn_date <= latest):
             continue
         if abs(abs(e.amount) - target_abs) <= amount_tolerance:
