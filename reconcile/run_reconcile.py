@@ -27,6 +27,11 @@ from reconcile.loaders.bank_credits_debits import (
     match_transaction as match_bank_credits,
     interpret_match as interpret_bank_credits_match,
 )
+from reconcile.loaders.property_expenses import (
+    load_property_entries,
+    match_property_transaction,
+)
+from rules.properties_registry import ACTIVE_RENO_FILE_IDS
 from reconcile.output import write_engine_output
 
 
@@ -61,6 +66,11 @@ def main():
         "--no-bank-credits",
         action="store_true",
         help="Skip the Bank Credits & Debits sheet matching pass.",
+    )
+    parser.add_argument(
+        "--no-property-sheets",
+        action="store_true",
+        help="Skip the property expense sheet matching pass.",
     )
     args = parser.parse_args()
 
@@ -172,6 +182,92 @@ def main():
     print(f"\n  Classified total:  ${classified_total:>15,.2f}")
     print(f"  Review queue total: ${review_total:>15,.2f}")
     print(f"  Combined:          ${classified_total + review_total:>15,.2f}")
+
+    # 6.4 Post-process: match Chase review-queue items against property expense sheets
+    if not args.no_property_sheets and review_items:
+        print()
+        print("=" * 90)
+        print("PROPERTY EXPENSE SHEETS PASS (Chase only)")
+        print("=" * 90)
+        try:
+            print("Loading property expense sheets from Drive...")
+            property_entries = {}
+            for prop_name, file_id in ACTIVE_RENO_FILE_IDS.items():
+                try:
+                    entries = load_property_entries(prop_name, file_id)
+                    chase_count = sum(1 for e in entries if e.is_chase())
+                    property_entries[prop_name] = entries
+                    print(f"  {prop_name}: {len(entries)} entries ({chase_count} chase)")
+                except Exception as e:
+                    print(f"  {prop_name}: FAIL ({e})")
+                    property_entries[prop_name] = []
+        except Exception as e:
+            print(f"  WARNING: Could not load property sheets: {e}")
+            property_entries = None
+
+        if property_entries:
+            promoted = 0
+            ambiguous = 0
+            unmatched = 0
+            still_review_after_property = []
+
+            for item in review_items:
+                txn = item.transaction
+                # Only Chase transactions in this pass
+                src_acct = (txn.source_account or "").lower()
+                if "chase" not in src_acct:
+                    still_review_after_property.append(item)
+                    continue
+
+                # Search across all property sheets
+                all_matches = []
+                for prop_name, entries in property_entries.items():
+                    matches = match_property_transaction(
+                        txn.date, txn.amount, entries, chase_only=True
+                    )
+                    for m in matches:
+                        all_matches.append((prop_name, m))
+
+                if not all_matches:
+                    unmatched += 1
+                    still_review_after_property.append(item)
+                    continue
+
+                if len(all_matches) == 1:
+                    prop_name, entry = all_matches[0]
+                    # Auto-promote: tag transaction with property class
+                    txn.qb_class = prop_name
+                    # Determine QB account: this is a card charge,
+                    # default Construction Costs (per CHASE CARD METHODOLOGY)
+                    if not txn.qb_account:
+                        txn.qb_account = "Construction Costs"
+                    if not txn.transaction_type:
+                        txn.transaction_type = "Expense"
+                    txn.classified_by = (
+                        f"property_sheet[{prop_name}] row {entry.row_num}: "
+                        f"{entry.payee[:30]} {entry.description[:30]}"
+                    )
+                    classified.append(txn)
+                    promoted += 1
+                else:
+                    # Multiple matches across different property sheets
+                    props_str = ", ".join(set(p for p, _ in all_matches))
+                    item.reason = (
+                        f"{item.reason} | "
+                        f"Property ambiguous: matches in {props_str}"
+                    )
+                    still_review_after_property.append(item)
+                    ambiguous += 1
+
+            review_items = still_review_after_property
+            print()
+            print(f"  Promoted to classified: {promoted}")
+            print(f"  Ambiguous (multiple property matches): {ambiguous}")
+            print(f"  No property match (unchanged): {unmatched}")
+            print()
+            print(f"Updated counts:")
+            print(f"  Classified: {len(classified)}")
+            print(f"  Review queue: {len(review_items)}")
 
     # 6.5 Post-process: match review-queue items against Bank Credits & Debits sheet
     if not args.no_bank_credits and review_items:
