@@ -132,12 +132,26 @@ def load_property_entries(property_name, file_id, drive_client=None, default_yea
     wb = client.fetch_spreadsheet(file_id)
     sheet = wb.active
 
+    # Find the header row by looking for multiple expected headers in the same row.
+    # Required: "date" + at least one of {"amount", "payee", "activity/materials"}.
+    # This discriminates real ledger headers from category lookup tables that
+    # might have a "Date" column without other matches.
     header_row = None
     header_row_num = None
     for row_idx, row in enumerate(
-        sheet.iter_rows(min_row=1, max_row=5, values_only=True), start=1
+        sheet.iter_rows(min_row=1, max_row=200, values_only=True), start=1
     ):
-        if row and any(_norm_header(c) == HEADER_DATE for c in row):
+        if not row:
+            continue
+        normalized = [_norm_header(c) for c in row]
+        has_date = any(n == HEADER_DATE for n in normalized)
+        has_other = any(
+            n in HEADER_ALIASES.get(HEADER_AMOUNT, set()) or
+            n in HEADER_ALIASES.get(HEADER_PAYEE, set()) or
+            n in HEADER_ALIASES.get(HEADER_DESC, set())
+            for n in normalized
+        )
+        if has_date and has_other:
             header_row = row
             header_row_num = row_idx
             break
@@ -145,7 +159,8 @@ def load_property_entries(property_name, file_id, drive_client=None, default_yea
     if header_row is None:
         raise ValueError(
             f"Could not find header row in {property_name} (file {file_id}). "
-            f"Looked at first 5 rows."
+            f"Looked at first 200 rows for 'Date' + amount/payee/activity. "
+            f"Sheet may need restructuring."
         )
 
     cols = _find_header_columns(header_row)
@@ -153,12 +168,16 @@ def load_property_entries(property_name, file_id, drive_client=None, default_yea
 
     entries = []
     skipped_unparseable = 0
+    consecutive_bad = 0
+    BAD_ROW_THRESHOLD = 8  # stop after this many consecutive non-parseable rows
 
     for row_idx, row in enumerate(
         sheet.iter_rows(min_row=header_row_num + 1, values_only=True),
         start=header_row_num + 1,
     ):
         if not row or all(c is None or (isinstance(c, str) and not c.strip()) for c in row):
+            # Fully blank row - reset consecutive counter and skip
+            consecutive_bad = 0
             continue
 
         date_raw = row[cols[HEADER_DATE]] if cols[HEADER_DATE] < len(row) else None
@@ -168,13 +187,21 @@ def load_property_entries(property_name, file_id, drive_client=None, default_yea
         amount = _parse_amount(amount_raw)
 
         if txn_date is None:
-            if amount is None:
-                continue
-            break
+            # Bad row (couldn't parse date). Skip but track for early termination.
+            consecutive_bad += 1
+            if consecutive_bad >= BAD_ROW_THRESHOLD:
+                break
+            continue
 
         if amount is None:
+            consecutive_bad += 1
             skipped_unparseable += 1
+            if consecutive_bad >= BAD_ROW_THRESHOLD:
+                break
             continue
+
+        # Good row - reset bad counter
+        consecutive_bad = 0
 
         payee = row[cols[HEADER_PAYEE]] if cols[HEADER_PAYEE] < len(row) else ""
         payment = row[cols[HEADER_PAYMENT]] if cols[HEADER_PAYMENT] < len(row) else ""
