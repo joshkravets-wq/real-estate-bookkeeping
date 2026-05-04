@@ -22,6 +22,11 @@ from pathlib import Path
 from reconcile.engine import reconcile
 from reconcile.load import load_pcb_transactions
 from reconcile.load_chase import load_chase_transactions
+from reconcile.loaders.bank_credits_debits import (
+    load_entries as load_bank_credits_entries,
+    match_transaction as match_bank_credits,
+    interpret_match as interpret_bank_credits_match,
+)
 from reconcile.output import write_engine_output
 
 
@@ -51,6 +56,11 @@ def main():
         "--chase-csv",
         default=None,
         help="Path to Chase CSV export (single file). Optional; omit to skip card classification.",
+    )
+    parser.add_argument(
+        "--no-bank-credits",
+        action="store_true",
+        help="Skip the Bank Credits & Debits sheet matching pass.",
     )
     args = parser.parse_args()
 
@@ -162,6 +172,81 @@ def main():
     print(f"\n  Classified total:  ${classified_total:>15,.2f}")
     print(f"  Review queue total: ${review_total:>15,.2f}")
     print(f"  Combined:          ${classified_total + review_total:>15,.2f}")
+
+    # 6.5 Post-process: match review-queue items against Bank Credits & Debits sheet
+    if not args.no_bank_credits and review_items:
+        print()
+        print("=" * 90)
+        print("BANK CREDITS & DEBITS PASS")
+        print("=" * 90)
+        try:
+            print("Loading Bank Credits & Debits sheet from Drive...")
+            bcd_entries = load_bank_credits_entries()
+            print(f"  Loaded {len(bcd_entries)} entries")
+        except Exception as e:
+            print(f"  WARNING: Could not load Bank Credits & Debits sheet: {e}")
+            bcd_entries = None
+
+        if bcd_entries:
+            from reconcile.loaders.bank_credits_debits import account_type
+            type_map = {
+                "income": "Income", "expense": "Expense", "cogs": "Expense",
+                "asset": "Asset", "liability": "Liability", "bank": "Bank",
+                "fixed_asset": "Asset", "equity": "Equity",
+            }
+            promoted = 0
+            annotated = 0
+            unmatched = 0
+            still_review = []
+            for item in review_items:
+                txn = item.transaction
+                matches = match_bank_credits(txn.date, txn.amount, bcd_entries)
+                if not matches:
+                    unmatched += 1
+                    still_review.append(item)
+                    continue
+                if len(matches) == 1:
+                    entry = matches[0]
+                    suggestion = interpret_bank_credits_match(entry)
+                    if suggestion.confidence == "high":
+                        txn.qb_account = suggestion.qb_account
+                        txn.qb_class = suggestion.qb_class
+                        acct_type = account_type(suggestion.qb_account)
+                        txn.transaction_type = type_map.get(acct_type, "Expense")
+                        txn.classified_by = (
+                            f"bank_credits_debits row {entry.row_num}: {suggestion.reason}"
+                        )
+                        classified.append(txn)
+                        promoted += 1
+                    else:
+                        item.reason = (
+                            f"{item.reason} | "
+                            f"BCD row {entry.row_num}: {entry.description[:50]} "
+                            f"(${entry.amount:.2f}, {entry.account_label}). "
+                            f"Suggestion: {suggestion.reason}"
+                        )
+                        item.suggested_account = suggestion.qb_account
+                        item.suggested_class = suggestion.qb_class
+                        still_review.append(item)
+                        annotated += 1
+                else:
+                    rows_str = ", ".join(f"row {m.row_num}" for m in matches)
+                    item.reason = (
+                        f"{item.reason} | "
+                        f"BCD ambiguous: {len(matches)} matching entries ({rows_str})"
+                    )
+                    still_review.append(item)
+                    annotated += 1
+
+            review_items = still_review
+            print()
+            print(f"  Promoted to classified: {promoted}")
+            print(f"  Annotated with BCD evidence: {annotated}")
+            print(f"  No BCD match (unchanged): {unmatched}")
+            print()
+            print(f"Updated counts:")
+            print(f"  Classified: {len(classified)}")
+            print(f"  Review queue: {len(review_items)}")
 
     # 7. Write Processor CSV + Review.txt
     print()
