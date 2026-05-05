@@ -23,3 +23,9 @@ ACTIVE_RENO_FILE_IDS = {
 # Note: 2143 N Palethorp St has no main expense ledger sheet (only a
 # "Mortgage Expenses" sheet). Excluded from this registry until a proper
 # sheet exists or we decide how to handle.
+
+
+# Manual Overrides Sheet (Bookkeeping Processors folder)
+# Per-transaction explicit accounting decisions that take precedence over
+# all engine classification logic. Edit in Google Sheets.
+MANUAL_OVERRIDES_FILE_ID = "1kkM1nj2DirtnfeuJJJNE4ax1tr6yuRdV-Oy--DC5A8c"

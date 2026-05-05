@@ -31,7 +31,11 @@ from reconcile.loaders.property_expenses import (
     load_property_entries,
     match_property_transaction,
 )
-from rules.properties_registry import ACTIVE_RENO_FILE_IDS
+from reconcile.loaders.manual_overrides import (
+    load_overrides,
+    find_override,
+)
+from rules.properties_registry import ACTIVE_RENO_FILE_IDS, MANUAL_OVERRIDES_FILE_ID
 from reconcile.output import write_engine_output
 
 
@@ -71,6 +75,11 @@ def main():
         "--no-property-sheets",
         action="store_true",
         help="Skip the property expense sheet matching pass.",
+    )
+    parser.add_argument(
+        "--no-manual-overrides",
+        action="store_true",
+        help="Skip the manual overrides pass.",
     )
     args = parser.parse_args()
 
@@ -182,6 +191,68 @@ def main():
     print(f"\n  Classified total:  ${classified_total:>15,.2f}")
     print(f"  Review queue total: ${review_total:>15,.2f}")
     print(f"  Combined:          ${classified_total + review_total:>15,.2f}")
+
+    # 6.3 Post-process: apply manual overrides FIRST (highest priority)
+    # Each override row is an explicit, audited accounting decision that
+    # supersedes all engine logic. Applies to both classified and review items.
+    if not args.no_manual_overrides:
+        print()
+        print("=" * 90)
+        print("MANUAL OVERRIDES PASS")
+        print("=" * 90)
+        try:
+            print("Loading Manual Overrides sheet from Drive...")
+            overrides = load_overrides(MANUAL_OVERRIDES_FILE_ID)
+            print(f"  Loaded {len(overrides)} override rows")
+        except Exception as e:
+            print(f"  WARNING: Could not load manual overrides: {e}")
+            overrides = []
+
+        if overrides:
+            applied_to_classified = 0
+            applied_to_review = 0
+            still_review_after_overrides = []
+
+            # Apply to already-classified transactions (overwrite if matched)
+            for txn in classified:
+                ov = find_override(txn, overrides)
+                if ov:
+                    txn.qb_account = ov.qb_account
+                    txn.qb_class = ov.qb_class
+                    txn.transaction_type = "Expense"  # default; overridden if needed
+                    txn.classified_by = (
+                        f"manual_override[row {ov.row_num}]: "
+                        f"{ov.notes[:50]}" if ov.notes else
+                        f"manual_override[row {ov.row_num}]"
+                    )
+                    applied_to_classified += 1
+
+            # Apply to review-queue items (promote to classified if matched)
+            for item in review_items:
+                txn = item.transaction
+                ov = find_override(txn, overrides)
+                if ov:
+                    txn.qb_account = ov.qb_account
+                    txn.qb_class = ov.qb_class
+                    txn.transaction_type = "Expense"
+                    txn.classified_by = (
+                        f"manual_override[row {ov.row_num}]: "
+                        f"{ov.notes[:50]}" if ov.notes else
+                        f"manual_override[row {ov.row_num}]"
+                    )
+                    classified.append(txn)
+                    applied_to_review += 1
+                else:
+                    still_review_after_overrides.append(item)
+
+            review_items = still_review_after_overrides
+            print()
+            print(f"  Overrode classified items: {applied_to_classified}")
+            print(f"  Promoted review items: {applied_to_review}")
+            print()
+            print(f"Updated counts:")
+            print(f"  Classified: {len(classified)}")
+            print(f"  Review queue: {len(review_items)}")
 
     # 6.4 Post-process: match Chase review-queue items against property expense sheets
     if not args.no_property_sheets and review_items:
