@@ -459,6 +459,11 @@ def main():
             print(f"  Classified: {len(classified)}")
             print(f"  Review queue: {len(review_items)}")
 
+    # Snapshot classified transactions BEFORE distribution passes wipe out
+    # individual items. The vendor tracker needs to see real vendor names
+    # (ANGEL HEATING, etc.) before they're aggregated into PROPORTIONAL_DISTRIBUTION.
+    pre_distribution_snapshot = list(classified)
+
     # 6.55 One-shot dump: move all review items into PROPORTIONAL bucket
     if args.distribute_all_review_items and review_items:
         print()
@@ -616,6 +621,8 @@ def main():
         period=args.period,
         output_dir=args.output_dir,
         checks_csv=None,
+        vendor_tracker_transactions=pre_distribution_snapshot,
+        retail_patterns=getattr(rules_module, "RETAIL_VENDOR_PATTERNS", []),
     )
     for label, path in paths.items():
         print(f"  {label}: {path}")

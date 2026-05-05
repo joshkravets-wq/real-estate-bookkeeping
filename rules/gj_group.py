@@ -277,3 +277,42 @@ CHASE_PROPERTY_RATIOS = {
 }
 # Sum should be 1.0 (rounding may put it at 0.9999 or 1.0001)
 
+
+# ============================================================================
+# RETAIL VENDOR PATTERNS
+# ============================================================================
+# Vendors matching these patterns are EXCLUDED from the vendor / 1099-NEC
+# tracker because they are retail/wholesale corps that do not need 1099-NEC
+# (sell goods, are corporations, payments are by credit card so 1099-K covers).
+# Service vendors (subcontractors, contractors, professionals) are NOT in
+# this list and WILL appear in the tracker regardless of qb_account.
+# Match is case-insensitive substring.
+
+RETAIL_VENDOR_PATTERNS = [
+    # Big-box / general retail
+    "home depot", "homedepot", "amazon", "lowe's", "lowes",
+    "sherwin williams", "sherwin-williams", "floor and decor", "floor & decor",
+    "ace hardware", "ikea", "costco", "walmart", "target",
+    "staples", "office depot", "best buy", "harbor freight", "menards",
+    "true value", "shell", "ferguson",
+    # Wholesale supply houses (sell goods, are corps, no 1099-NEC)
+    "tague lumber", "fw webb", "f.w. webb", "webb plumbing",
+    "cmi supply", "cooper electric", "billows", "c&r supplies",
+    "c&r building supplies", "woodland building supply", "abc supply",
+    "n&n supply", "southwest vinyl windows",
+    "integrity supply", "cousins supermarket",
+    # Utilities
+    "peco", "pgw",
+    # Insurance / financial
+    "diamond state insurance", "american modern", "vacant express", "zurich",
+    # Government / legal
+    "city of phila", "city of philadelphia", "sheriff of philadelphia",
+    "licenses & inspections", "register of wills",
+    "phila26 l&i", "phila l&i", "phila code unit", "phila rev ez-pay",
+    # Restaurants / personal (showed up by accident)
+    "boteco", "hai van",
+    # Washington Brothers (NOT a 1099 vendor per Josh)
+    "washington brother", "ls washington brother",
+    # Webb plumbing typo variant
+    "webb pluming",
+]

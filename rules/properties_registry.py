@@ -29,3 +29,11 @@ ACTIVE_RENO_FILE_IDS = {
 # Per-transaction explicit accounting decisions that take precedence over
 # all engine classification logic. Edit in Google Sheets.
 MANUAL_OVERRIDES_FILE_ID = "1kkM1nj2DirtnfeuJJJNE4ax1tr6yuRdV-Oy--DC5A8c"
+
+
+# Vendor Aliases Sheet (Bookkeeping Processors folder)
+# Maps spelling variants (as they appear in property expense sheets and
+# bank statement descriptions) to canonical vendor names. Used by the
+# vendor tracker in output.py to consolidate duplicate-spelling rows
+# for accurate 1099 threshold tracking.
+VENDOR_ALIASES_FILE_ID = "1aRKJyhm8zm5DVXqqQE92zFZ23ajUOVwwF-mgtLxosmo"

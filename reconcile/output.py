@@ -17,6 +17,14 @@ import csv
 from collections import defaultdict
 from pathlib import Path
 
+# Optional dependency - vendor aliases are loaded lazily if available
+try:
+    from reconcile.loaders.vendor_aliases import load_aliases, canonicalize
+    from rules.properties_registry import VENDOR_ALIASES_FILE_ID
+    _VENDOR_ALIASES_AVAILABLE = True
+except (ImportError, Exception):
+    _VENDOR_ALIASES_AVAILABLE = False
+
 
 STANDARD_HEADER = [
     "Date", "Month", "Description", "Detail",
@@ -77,17 +85,43 @@ def extract_payee_from_description(description):
     return ""
 
 
-def build_vendor_tracker(transactions, checks_csv=None):
+def build_vendor_tracker(transactions, checks_csv=None, vendor_aliases=None, retail_patterns=None):
+    """Build the vendor / 1099-NEC tracker section.
+    
+    If vendor_aliases is provided (dict from load_aliases()), payees are
+    canonicalized before bucketing.
+    """
     checks_by_num = {}
     if checks_csv:
         for c in checks_csv:
             checks_by_num[c.check_num] = c
 
+    # Lazy-load aliases if not passed
+    if vendor_aliases is None and _VENDOR_ALIASES_AVAILABLE:
+        try:
+            vendor_aliases = load_aliases(VENDOR_ALIASES_FILE_ID)
+        except Exception as e:
+            print(f"  WARNING: Could not load vendor aliases: {e}")
+            vendor_aliases = {}
+    if vendor_aliases is None:
+        vendor_aliases = {}
+
     vendor_data = defaultdict(lambda: defaultdict(float))
     vendor_notes = defaultdict(list)
+    vendor_meta = {}  # canonical name -> dict with ein, address
+
+    retail_patterns_lower = [pat.lower() for pat in (retail_patterns or [])]
+
+    def _is_retail(payee_str):
+        if not payee_str:
+            return False
+        pl = payee_str.lower()
+        return any(pat in pl for pat in retail_patterns_lower)
+
+    VENDOR_TRACKED_ACCOUNTS = {"Subcontractors Expense", "Construction Costs"}
 
     for txn in transactions:
-        if txn.qb_account != "Subcontractors Expense":
+        if txn.qb_account not in VENDOR_TRACKED_ACCOUNTS:
             continue
         payee = ""
         # Priority: txn.payee (from property pass match) > checks_csv > description parse
@@ -97,8 +131,23 @@ def build_vendor_tracker(transactions, checks_csv=None):
             payee = checks_by_num[txn.check_number].payee
         else:
             payee = extract_payee_from_description(txn.description)
+            if not payee:
+                # Fallback: use description directly for Chase txns
+                # (most Chase descriptions ARE the vendor name, e.g., "ANGEL HEATING AND COOLIN")
+                payee = txn.description.strip()
         if not payee:
             continue
+        if _is_retail(payee):
+            continue
+        # Canonicalize payee using alias registry (if loaded)
+        alias = canonicalize(payee, vendor_aliases) if vendor_aliases else None
+        if alias:
+            payee = alias.canonical_name
+            if payee not in vendor_meta:
+                vendor_meta[payee] = {
+                    "ein": alias.ein_ssn,
+                    "address": alias.address,
+                }
         amount = abs(txn.amount)
         month_key = format_month(txn.date) + "-" + str(txn.date.year % 100)
         vendor_data[payee][month_key] += amount
@@ -130,7 +179,10 @@ def build_vendor_tracker(transactions, checks_csv=None):
         meets = "Yes (>$600)" if ytd >= THRESHOLD_1099_NEC else "No"
         properties_note = ", ".join(vendor_notes[payee]) if vendor_notes[payee] else ""
         notes = f"TBD - need W-9. {properties_note}" if properties_note else "TBD - need W-9"
-        row = [payee, "TBD - collect W-9", "TBD - collect W-9", "1099-NEC"]
+        meta = vendor_meta.get(payee, {})
+        ein_display = meta.get("ein") or "TBD - collect W-9"
+        addr_display = meta.get("address") or "TBD - collect W-9"
+        row = [payee, ein_display, addr_display, "1099-NEC"]
         for m in sorted_months:
             amt = vendor_data[payee][m]
             row.append(format_currency(amt) if amt > 0 else "")
@@ -261,12 +313,14 @@ def filename_for(entity_name, period):
 
 
 def write_engine_output(classified_transactions, review_items, entity_name, period,
-                        output_dir="./output", checks_csv=None):
+                        output_dir="./output", checks_csv=None,
+                        vendor_tracker_transactions=None, retail_patterns=None):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     csv_filename = filename_for(entity_name, period)
     csv_path = output_dir / csv_filename
-    vendor_rows = build_vendor_tracker(classified_transactions, checks_csv=checks_csv)
+    vendor_txns = vendor_tracker_transactions if vendor_tracker_transactions is not None else classified_transactions
+    vendor_rows = build_vendor_tracker(vendor_txns, checks_csv=checks_csv, retail_patterns=retail_patterns)
     summary_rows = build_summary(classified_transactions)
     write_csv(classified_transactions, str(csv_path),
               vendor_rows=vendor_rows, summary_rows=summary_rows)
