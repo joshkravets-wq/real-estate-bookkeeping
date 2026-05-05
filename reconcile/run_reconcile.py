@@ -86,6 +86,11 @@ def main():
         action="store_true",
         help="Skip proportional distribution of unmatched items.",
     )
+    parser.add_argument(
+        "--distribute-all-review-items",
+        action="store_true",
+        help="One-shot: move ALL review queue items into PROPORTIONAL_DISTRIBUTION before the distribution pass. Use sparingly; usually you want to handle review items individually.",
+    )
     args = parser.parse_args()
 
     # 1. Load and pair PCB transactions
@@ -446,6 +451,24 @@ def main():
             print(f"Updated counts:")
             print(f"  Classified: {len(classified)}")
             print(f"  Review queue: {len(review_items)}")
+
+    # 6.55 One-shot dump: move all review items into PROPORTIONAL bucket
+    if args.distribute_all_review_items and review_items:
+        print()
+        print("=" * 90)
+        print("DISTRIBUTE ALL REVIEW ITEMS (one-shot)")
+        print("=" * 90)
+        print(f"  Moving {len(review_items)} review queue items into PROPORTIONAL_DISTRIBUTION pool")
+        print(f"  Total: ${sum(r.transaction.amount for r in review_items):,.2f}")
+        for item in review_items:
+            txn = item.transaction
+            txn.qb_account = "Construction Costs"
+            txn.qb_class = "PROPORTIONAL_DISTRIBUTION"
+            txn.transaction_type = "Expense"
+            txn.classified_by = "distribute_all_review_items[one-shot]"
+            classified.append(txn)
+        review_items = []
+        print(f"  Review queue cleared")
 
     # 6.6 Post-process: distribute PROPORTIONAL_DISTRIBUTION items across
     # properties using Chase ratios from rules module
