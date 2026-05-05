@@ -257,3 +257,23 @@ UNMATCHED_HANDLING = {
     "method": "proportional_distribution",
     "ask_threshold_amount": 100.00,
 }
+
+
+# ============================================================================
+# CHASE PROPERTY RATIOS (Q1 2026 baseline)
+# ============================================================================
+# Per the rules doc, unmatched Chase items get distributed across properties
+# using these ratios. Also used for AMEX allocation until AMEX statements arrive.
+# Ratios derived from the matched Q1 Chase transactions.
+# Recalculate when Q2/Q3 reconciliations are done.
+
+CHASE_PROPERTY_RATIOS = {
+    "5461 W Berks St":     0.2194,
+    "5746 Grays Ave":      0.4512,
+    "2563 E Elkhart St":   0.2859,
+    "2143 N Palethorp St": 0.0035,
+    "2030 N Lawrence St":  0.0062,
+    "2672 Braddock Ave":   0.0337,
+}
+# Sum should be 1.0 (rounding may put it at 0.9999 or 1.0001)
+

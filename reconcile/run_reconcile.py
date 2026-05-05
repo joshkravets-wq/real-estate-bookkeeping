@@ -81,6 +81,11 @@ def main():
         action="store_true",
         help="Skip the manual overrides pass.",
     )
+    parser.add_argument(
+        "--no-proportional-distribution",
+        action="store_true",
+        help="Skip proportional distribution of unmatched items.",
+    )
     args = parser.parse_args()
 
     # 1. Load and pair PCB transactions
@@ -441,6 +446,74 @@ def main():
             print(f"Updated counts:")
             print(f"  Classified: {len(classified)}")
             print(f"  Review queue: {len(review_items)}")
+
+    # 6.6 Post-process: distribute PROPORTIONAL_DISTRIBUTION items across
+    # properties using Chase ratios from rules module
+    if not args.no_proportional_distribution:
+        ratios = getattr(rules_module, "CHASE_PROPERTY_RATIOS", None)
+        if ratios:
+            print()
+            print("=" * 90)
+            print("PROPORTIONAL DISTRIBUTION PASS")
+            print("=" * 90)
+
+            # Find all txns with PROPORTIONAL_DISTRIBUTION class
+            prop_txns = [t for t in classified
+                         if t.qb_class == "PROPORTIONAL_DISTRIBUTION"]
+
+            if not prop_txns:
+                print("  No PROPORTIONAL_DISTRIBUTION items to distribute")
+            else:
+                # Sum and remove from classified
+                total_amount = sum(t.amount for t in prop_txns)
+                print(f"  Found {len(prop_txns)} PROPORTIONAL items totaling ${total_amount:.2f}")
+
+                classified = [t for t in classified
+                              if t.qb_class != "PROPORTIONAL_DISTRIBUTION"]
+
+                # Create 6 distribution transactions
+                from datetime import date as date_cls
+                from reconcile.engine import Transaction
+
+                # Use the latest txn date as the distribution date
+                last_date = max((t.date for t in prop_txns), default=date_cls.today())
+
+                # Compute amounts for each property; track running sum to handle rounding
+                amounts = {}
+                running = 0.0
+                props = list(ratios.items())
+                for prop, ratio in props[:-1]:
+                    amt = round(total_amount * ratio, 2)
+                    amounts[prop] = amt
+                    running += amt
+                # Last property absorbs rounding adjustment
+                last_prop, _ = props[-1]
+                amounts[last_prop] = round(total_amount - running, 2)
+
+                # Create distribution transactions
+                for prop, amt in amounts.items():
+                    if abs(amt) < 0.01:
+                        continue
+                    dist_txn = Transaction(
+                        source_account="DISTRIBUTION",
+                        date=last_date,
+                        description=f"Proportional distribution of unmatched Chase items ({len(prop_txns)} txns) to {prop}",
+                        amount=amt,
+                        qb_account="Construction Costs",
+                        qb_class=prop,
+                        transaction_type="Expense",
+                        classified_by=f"proportional_distribution[{ratios[prop]*100:.2f}% of ${total_amount:.2f}]",
+                    )
+                    classified.append(dist_txn)
+                    print(f"  {prop:<25} ${amt:>10.2f} ({ratios[prop]*100:.2f}%)")
+
+                print()
+                print(f"Updated counts:")
+                print(f"  Classified: {len(classified)}")
+                print(f"  Review queue: {len(review_items)}")
+        else:
+            print()
+            print("(No CHASE_PROPERTY_RATIOS in rules module; skipping proportional distribution)")
 
     # 7. Write Processor CSV + Review.txt
     print()
