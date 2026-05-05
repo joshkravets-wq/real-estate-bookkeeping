@@ -255,7 +255,7 @@ MANUAL_OVERRIDES = [
 
 UNMATCHED_HANDLING = {
     "method": "proportional_distribution",
-    "ask_threshold_amount": 100.00,
+    "ask_threshold_amount": 250.00,
 }
 
 
