@@ -91,6 +91,11 @@ def main():
         action="store_true",
         help="One-shot: move ALL review queue items into PROPORTIONAL_DISTRIBUTION before the distribution pass. Use sparingly; usually you want to handle review items individually.",
     )
+    parser.add_argument(
+        "--distribute-amex",
+        action="store_true",
+        help="Distribute AMEX autopay totals across properties using Chase ratios. Use when AMEX statements are not available (e.g., card cancelled).",
+    )
     args = parser.parse_args()
 
     # 1. Load and pair PCB transactions
@@ -537,6 +542,65 @@ def main():
         else:
             print()
             print("(No CHASE_PROPERTY_RATIOS in rules module; skipping proportional distribution)")
+
+    # 6.7 Post-process: distribute AMEX charges across properties using Chase ratios
+    # Used when AMEX statements are not available (e.g., card cancelled).
+    if args.distribute_amex:
+        ratios = getattr(rules_module, "CHASE_PROPERTY_RATIOS", None)
+        if ratios:
+            print()
+            print("=" * 90)
+            print("AMEX DISTRIBUTION PASS")
+            print("=" * 90)
+
+            amex_txns = [t for t in classified if t.qb_account == "AMEX"]
+
+            if not amex_txns:
+                print("  No AMEX transactions to distribute")
+            else:
+                total_amount = sum(t.amount for t in amex_txns)
+                print(f"  Found {len(amex_txns)} AMEX autopay txns totaling ${total_amount:.2f}")
+
+                classified = [t for t in classified if t.qb_account != "AMEX"]
+
+                from datetime import date as date_cls
+                from reconcile.engine import Transaction
+
+                last_date = max((t.date for t in amex_txns), default=date_cls.today())
+
+                amounts = {}
+                running = 0.0
+                props = list(ratios.items())
+                for prop, ratio in props[:-1]:
+                    amt = round(total_amount * ratio, 2)
+                    amounts[prop] = amt
+                    running += amt
+                last_prop, _ = props[-1]
+                amounts[last_prop] = round(total_amount - running, 2)
+
+                for prop, amt in amounts.items():
+                    if abs(amt) < 0.01:
+                        continue
+                    dist_txn = Transaction(
+                        source_account="DISTRIBUTION",
+                        date=last_date,
+                        description=f"AMEX charges distributed to {prop} (no AMEX statements available; card cancelled)",
+                        amount=amt,
+                        qb_account="Construction Costs",
+                        qb_class=prop,
+                        transaction_type="Expense",
+                        classified_by=f"amex_distribution[{ratios[prop]*100:.2f}% of ${total_amount:.2f}]",
+                    )
+                    classified.append(dist_txn)
+                    print(f"  {prop:<25} ${amt:>10.2f} ({ratios[prop]*100:.2f}%)")
+
+                print()
+                print(f"Updated counts:")
+                print(f"  Classified: {len(classified)}")
+                print(f"  Review queue: {len(review_items)}")
+        else:
+            print()
+            print("(No CHASE_PROPERTY_RATIOS in rules module; skipping AMEX distribution)")
 
     # 7. Write Processor CSV + Review.txt
     print()
