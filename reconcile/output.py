@@ -90,7 +90,10 @@ def build_vendor_tracker(transactions, checks_csv=None):
         if txn.qb_account != "Subcontractors Expense":
             continue
         payee = ""
-        if txn.is_check and txn.check_number in checks_by_num:
+        # Priority: txn.payee (from property pass match) > checks_csv > description parse
+        if getattr(txn, "payee", None):
+            payee = txn.payee
+        elif txn.is_check and txn.check_number in checks_by_num:
             payee = checks_by_num[txn.check_number].payee
         else:
             payee = extract_payee_from_description(txn.description)

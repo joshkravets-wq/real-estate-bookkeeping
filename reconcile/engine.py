@@ -28,6 +28,7 @@ class Transaction:
     raw_data: dict = field(default_factory=dict)
 
     qb_account: Optional[str] = None
+    payee: Optional[str] = None
     qb_class: Optional[str] = None
     transaction_type: Optional[str] = None
     classified_by: Optional[str] = None

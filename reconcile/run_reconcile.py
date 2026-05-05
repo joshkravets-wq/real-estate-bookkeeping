@@ -346,6 +346,8 @@ def main():
                     prop_name, entry = all_matches[0]
                     # Auto-promote: tag transaction with property class
                     txn.qb_class = prop_name
+                    if not txn.payee and getattr(entry, 'payee', None):
+                        txn.payee = entry.payee
                     # Determine QB account based on transaction source:
                     #   Chase card charge -> Construction Costs (per CHASE CARD METHODOLOGY)
                     #   Bank check -> Subcontractors Expense (per G&J GROUP architecture)
