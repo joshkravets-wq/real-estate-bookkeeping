@@ -175,10 +175,40 @@ BANK_RULES = [
     # =========================================================
     {
         "name": "PECO (50/50 Berks/Grays split)",
-        "match": {"description_contains": "PECO"},
+        "match": {"any_description_contains": ["PECO", "PHILADELPHIA ELE"]},
         "account": "PECO_SPLIT",
         "class": "PECO_SPLIT",
         "type": "Asset",
+    },
+
+    # Intercompany transfers to G&J Group 5494 (contractor payments)
+    {
+        "name": "Contractor payment to G&J Group",
+        "match": {
+            "any_description_contains": [
+                "Gj holding to gj. 5494",
+                "GJ hold to 5494",
+                "Gj holdings to GJ 5494",
+                "Contractor payment GJ hold to 5494",
+                "Contractor payment from GJ Holding",
+                "Contractor payment from GJ Holdings",
+                "Contractor payment",
+                "credit card bill",
+            ],
+        },
+        "account": "ASK",
+        "class": "ASK",
+        "type": "Asset",
+        "notes": "Contractor payment to G&J Group. Class via Manual Override for now; future: descriptions will include property tag.",
+    },
+
+    # Tiny SuperValue purchases (under $20)
+    {
+        "name": "SuperValue Check fee",
+        "match": {"description_contains": "SuperValue Check"},
+        "account": "Bank Service Charges",
+        "class": "",
+        "type": "Expense",
     },
 
     # =========================================================
@@ -202,5 +232,11 @@ UNMATCHED_HANDLING = {
     "method": "review",
     "ask_threshold_amount": 0.00,
 }
+
+# Bank check patterns observed in property expense sheets when GJ Holdings PCB 3395
+# is the paying account. Catches "gj holdings", "gj holdings 1023", "gj holdings bank", etc.
+BANK_CHECK_PATTERNS = [
+    "gj holdings",
+]
 
 RETAIL_VENDOR_PATTERNS = []

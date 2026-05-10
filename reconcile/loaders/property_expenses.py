@@ -82,7 +82,7 @@ def _find_header_columns(header_row):
     return found
 
 
-def _parse_date(raw, default_year=2025):
+def _parse_date(raw, default_year=2026):
     if raw is None:
         return None
     if isinstance(raw, datetime):
@@ -127,7 +127,7 @@ def _parse_amount(raw):
         return None
 
 
-def load_property_entries(property_name, file_id, drive_client=None, default_year=2025):
+def load_property_entries(property_name, file_id, drive_client=None, default_year=2026):
     client = drive_client or DriveClient()
     wb = client.fetch_spreadsheet(file_id)
     sheet = wb.active

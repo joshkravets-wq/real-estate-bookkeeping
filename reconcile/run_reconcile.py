@@ -92,6 +92,26 @@ def main():
         help="One-shot: move ALL review queue items into PROPORTIONAL_DISTRIBUTION before the distribution pass. Use sparingly; usually you want to handle review items individually.",
     )
     parser.add_argument(
+        "--no-loan-splits",
+        action="store_true",
+        help="Skip the loan payments split pass",
+    )
+    parser.add_argument(
+        "--no-water-ranking",
+        action="store_true",
+        help="Skip the water ranking pass",
+    )
+    parser.add_argument(
+        "--no-gas-peco-split",
+        action="store_true",
+        help="Skip the gas/PECO 50/50 split pass",
+    )
+    parser.add_argument(
+        "--no-rentredi",
+        action="store_true",
+        help="Skip the RentRedi rental income split pass",
+    )
+    parser.add_argument(
         "--distribute-amex",
         action="store_true",
         help="Distribute AMEX autopay totals across properties using Chase ratios. Use when AMEX statements are not available (e.g., card cancelled).",
@@ -277,8 +297,20 @@ def main():
         print("=" * 90)
         try:
             print("Loading property expense sheets from Drive...")
+            # Property file IDs come from the entity's rules module if available
+            # (rules_module.PROPERTIES); fall back to ACTIVE_RENO_FILE_IDS for G&J Group.
+            entity_props = getattr(rules_module, "PROPERTIES", None)
+            if entity_props:
+                property_file_ids = {
+                    name: cfg.get("expense_sheet")
+                    for name, cfg in entity_props.items()
+                    if cfg.get("expense_sheet")
+                }
+            else:
+                property_file_ids = dict(ACTIVE_RENO_FILE_IDS)
+
             property_entries = {}
-            for prop_name, file_id in ACTIVE_RENO_FILE_IDS.items():
+            for prop_name, file_id in property_file_ids.items():
                 try:
                     entries = load_property_entries(prop_name, file_id)
                     chase_count = sum(1 for e in entries if e.is_chase())
@@ -297,18 +329,13 @@ def main():
             unmatched = 0
             still_review_after_property = []
 
-            # Patterns for G&J Group bank check matching (PCB 5494 + 5501)
-            # Observed in expense sheets: "Gj group494 ch# 191", "G&J group 5494 check 184"
-            GJ_BANK_PATTERNS = [
-                "g&j group",
-                "gj group",
-                "g&j grp",   # abbreviated form seen in expense sheets: "Gj grp 187"
-                "gj grp",    # also matches "gj grp 188", "gj grp", etc.
-                "g&j 5494",
-                "gj 5494",
-                "g&j group494",
-                "gj group494",
+            # Bank check matching patterns - sourced from rules module per entity.
+            # Each entity has its own bank check labeling convention seen in expense sheets.
+            DEFAULT_GJ_GROUP_PATTERNS = [
+                "g&j group", "gj group", "g&j grp", "gj grp",
+                "g&j 5494", "gj 5494", "g&j group494", "gj group494",
             ]
+            GJ_BANK_PATTERNS = getattr(rules_module, "BANK_CHECK_PATTERNS", DEFAULT_GJ_GROUP_PATTERNS)
 
             for item in review_items:
                 txn = item.transaction
@@ -342,8 +369,12 @@ def main():
                     still_review_after_property.append(item)
                     continue
 
-                if len(all_matches) == 1:
-                    prop_name, entry = all_matches[0]
+                # Check if all matches are within the same property (still safe to auto-promote)
+                unique_props = set(p for p, _ in all_matches)
+                if len(unique_props) == 1:
+                    # All matches in same property - take first match
+                    prop_name = list(unique_props)[0]
+                    entry = all_matches[0][1]
                     # Auto-promote: tag transaction with property class
                     txn.qb_class = prop_name
                     if not txn.payee and getattr(entry, 'payee', None):
@@ -351,13 +382,28 @@ def main():
                     # Determine QB account based on transaction source:
                     #   Chase card charge -> Construction Costs (per CHASE CARD METHODOLOGY)
                     #   Bank check -> Subcontractors Expense (per G&J GROUP architecture)
-                    if not txn.qb_account:
-                        if "chase" in src_acct:
+                    # Determine pre-stab vs stabilized treatment from the rules module
+                    properties_cfg = getattr(rules_module, "PROPERTIES", {})
+                    prop_cfg = properties_cfg.get(prop_name, {})
+                    is_pre_stab = prop_cfg.get("status") == "pre-stab"
+
+                    if "chase" in src_acct:
+                        # Chase card - always Construction Costs (G&J Group flow)
+                        if not txn.qb_account:
                             txn.qb_account = "Construction Costs"
-                        else:
+                        if not txn.transaction_type:
+                            txn.transaction_type = "Expense"
+                    elif is_pre_stab:
+                        # Bank check at pre-stab property - capitalize to property asset
+                        txn.qb_account = prop_name  # property address IS the asset account
+                        txn.qb_class = ""           # no class on pre-stab
+                        txn.transaction_type = "Asset"
+                    else:
+                        # Bank check at stabilized property OR G&J Group default
+                        if not txn.qb_account:
                             txn.qb_account = "Subcontractors Expense"
-                    if not txn.transaction_type:
-                        txn.transaction_type = "Expense"
+                        if not txn.transaction_type:
+                            txn.transaction_type = "Expense"
                     txn.classified_by = (
                         f"property_sheet[{prop_name}] row {entry.row_num}: "
                         f"{entry.payee[:30]} {entry.description[:30]}"
@@ -458,6 +504,284 @@ def main():
             print(f"Updated counts:")
             print(f"  Classified: {len(classified)}")
             print(f"  Review queue: {len(review_items)}")
+
+    # =========================================================
+    # 6.6.1 LOAN PAYMENTS SPLIT PASS (GJ Holdings)
+    # =========================================================
+    if not args.no_loan_splits:
+        loans_config = getattr(rules_module, "LOANS", None)
+        if loans_config:
+            print()
+            print("=" * 90)
+            print("LOAN PAYMENTS SPLIT PASS")
+            print("=" * 90)
+            try:
+                from reconcile.loaders.loan_payments import load_all_loans
+                from pathlib import Path as _Path
+                loan_splits_by_loan = load_all_loans(loans_config, _Path(args.pcb_dir))
+                splits_index = {}
+                for loan_num, splits in loan_splits_by_loan.items():
+                    for s in splits:
+                        splits_index.setdefault((loan_num, s.txn_date), []).append(s)
+            except Exception as e:
+                print(f"  WARNING: Could not load loan splits: {e}")
+                splits_index = {}
+
+            from reconcile.engine import Transaction as _Transaction
+            new_classified = []
+            replaced_count = 0
+            unmatched_loan_count = 0
+            for txn in classified:
+                if txn.qb_account == "SPLIT_LOAN":
+                    loan_num = txn.qb_class
+                    splits = splits_index.get((loan_num, txn.date), [])
+                    if not splits:
+                        from datetime import timedelta as _td
+                        for delta in (-1, 1, -2, 2):
+                            splits = splits_index.get((loan_num, txn.date + _td(days=delta)), [])
+                            if splits:
+                                break
+                    if not splits:
+                        txn.qb_account = "ASK"
+                        txn.classified_by = f"LOAN_NO_MATCH[loan {loan_num} on {txn.date}]"
+                        new_classified.append(txn)
+                        unmatched_loan_count += 1
+                        continue
+
+                    loan_cfg = loans_config.get(loan_num, {})
+                    is_stabilized = loan_cfg.get("is_stabilized", True)
+                    property_class = loan_cfg.get("property", "")
+
+                    for s in splits:
+                        if s.component == "principal":
+                            qb_acct = f"PCB Loan {loan_num}" if loan_cfg.get("servicer") == "PCB" else f"Fay Loan {loan_num}"
+                            qb_class = property_class
+                            ttype = "Liability"
+                        elif s.component == "interest":
+                            if is_stabilized:
+                                qb_acct = "Interest Expense"
+                                qb_class = property_class
+                                ttype = "Expense"
+                            else:
+                                qb_acct = property_class
+                                qb_class = ""
+                                ttype = "Asset"
+                        elif s.component == "escrow":
+                            qb_acct = "Escrow"
+                            qb_class = property_class
+                            ttype = "Asset"
+                        else:
+                            qb_acct = "ASK"
+                            qb_class = property_class
+                            ttype = "Expense"
+
+                        split_txn = _Transaction(
+                            source_account=txn.source_account,
+                            date=txn.date,
+                            description=s.description,
+                            amount=float(s.amount),
+                            qb_account=qb_acct,
+                            qb_class=qb_class,
+                            transaction_type=ttype,
+                            classified_by=f"loan_split[{loan_num} {s.component}]",
+                        )
+                        new_classified.append(split_txn)
+                    replaced_count += 1
+                else:
+                    new_classified.append(txn)
+            classified = new_classified
+
+            print(f"  Loan payments replaced with splits: {replaced_count}")
+            if unmatched_loan_count:
+                print(f"  Loan payments with no CSV match (flagged ASK): {unmatched_loan_count}")
+            print()
+            print(f"Updated counts:")
+            print(f"  Classified: {len(classified)}")
+
+    # =========================================================
+    # 6.6.2 WATER RANKING PASS (GJ Holdings)
+    # =========================================================
+    if not args.no_water_ranking:
+        if any(t.qb_account == "WATER_RANKING" for t in classified):
+            print()
+            print("=" * 90)
+            print("WATER RANKING PASS")
+            print("=" * 90)
+            from reconcile.water_ranking import assign_water_bills
+            assigns, water_review_idx, audit = assign_water_bills(classified)
+            for line in audit:
+                print(f"  {line}")
+            for a in assigns:
+                t = classified[a.txn_index]
+                t.qb_account = a.qb_account
+                t.qb_class = a.qb_class
+                t.transaction_type = a.transaction_type
+                t.classified_by = a.classified_by
+            from reconcile.engine import ReviewItem as _ReviewItem
+            for idx in water_review_idx:
+                t = classified[idx]
+                review_items.append(_ReviewItem(
+                    transaction=t,
+                    reason=f"Water bill could not be assigned (rank/amount unclear)"
+                ))
+            classified = [t for i, t in enumerate(classified) if i not in set(water_review_idx)]
+
+            print()
+            print(f"Updated counts:")
+            print(f"  Classified: {len(classified)}")
+            print(f"  Review queue: {len(review_items)}")
+
+    # =========================================================
+    # 6.6.3 GAS / PECO 50/50 SPLIT PASS (GJ Holdings)
+    # =========================================================
+    if not args.no_gas_peco_split:
+        split_props = getattr(rules_module, "GAS_PECO_SPLIT", None)
+        if split_props and len(split_props) == 2:
+            split_markers = {"GAS_SPLIT": "Phila Gas", "PECO_SPLIT": "PECO"}
+            txns_to_split = [t for t in classified if t.qb_account in split_markers]
+            if txns_to_split:
+                print()
+                print("=" * 90)
+                print("GAS / PECO 50/50 SPLIT PASS")
+                print("=" * 90)
+                from reconcile.engine import Transaction as _Transaction
+                new_classified = []
+                replaced = 0
+                for t in classified:
+                    if t.qb_account in split_markers:
+                        marker_label = split_markers[t.qb_account]
+                        half = round(t.amount / 2.0, 2)
+                        new_classified.append(_Transaction(
+                            source_account=t.source_account,
+                            date=t.date,
+                            description=f"{marker_label} - {split_props[0]} (50%)",
+                            amount=half,
+                            qb_account=split_props[0],
+                            qb_class="",
+                            transaction_type="Asset",
+                            classified_by=f"gas_peco_split[{marker_label} 50%]",
+                        ))
+                        new_classified.append(_Transaction(
+                            source_account=t.source_account,
+                            date=t.date,
+                            description=f"{marker_label} - {split_props[1]} (50%)",
+                            amount=round(t.amount - half, 2),
+                            qb_account=split_props[1],
+                            qb_class="",
+                            transaction_type="Asset",
+                            classified_by=f"gas_peco_split[{marker_label} 50%]",
+                        ))
+                        replaced += 1
+                    else:
+                        new_classified.append(t)
+                classified = new_classified
+                print(f"  Replaced {replaced} bills with 50/50 splits across {split_props[0]} + {split_props[1]}")
+                print()
+                print(f"Updated counts:")
+                print(f"  Classified: {len(classified)}")
+
+    # =========================================================
+    # 6.6.4 RENTREDI SPLIT PASS (GJ Holdings)
+    # =========================================================
+    if not args.no_rentredi:
+        rentredi_suffix = rules_module.ENTITY.get("rentredi_bank_suffix")
+        if rentredi_suffix:
+            rentredi_txns = [t for t in classified if t.qb_account == "RENTREDI_SPLIT"]
+            if rentredi_txns:
+                print()
+                print("=" * 90)
+                print("RENTREDI SPLIT PASS")
+                print("=" * 90)
+                from pathlib import Path as _Path
+                rentredi_path = _Path(args.pcb_dir).parent / "Rent Redi Deposits Jan-march.csv"
+                if not rentredi_path.exists():
+                    print(f"  WARNING: RentRedi CSV not found at {rentredi_path}")
+                else:
+                    from reconcile.loaders.rent_redi import load_rentredi_deposits, find_deposit_for_bank_txn
+                    from reconcile.engine import Transaction as _Transaction
+                    from decimal import Decimal as _Decimal
+                    deposits = load_rentredi_deposits(rentredi_path, bank_suffix=rentredi_suffix)
+                    print(f"  Loaded {len(deposits)} deposits for bank suffix xxxx{rentredi_suffix}")
+
+                    new_classified = []
+                    replaced = 0
+                    unmatched = 0
+                    for t in classified:
+                        if t.qb_account == "RENTREDI_SPLIT":
+                            d = find_deposit_for_bank_txn(deposits, t.date, _Decimal(str(t.amount)))
+                            if not d:
+                                t.qb_account = "ASK"
+                                t.classified_by = f"RENTREDI_NO_MATCH"
+                                new_classified.append(t)
+                                unmatched += 1
+                                continue
+                            for r in d.rents:
+                                rent_txn = _Transaction(
+                                    source_account=t.source_account,
+                                    date=t.date,
+                                    description=f"Rent - {r.property} {r.unit} - {r.tenant}",
+                                    amount=float(r.amount),
+                                    qb_account="Rental Income",
+                                    qb_class=r.property,
+                                    transaction_type="Income",
+                                    classified_by=f"rentredi_split[{r.property} {r.unit} - {r.description}]",
+                                )
+                                new_classified.append(rent_txn)
+                            replaced += 1
+                        else:
+                            new_classified.append(t)
+                    classified = new_classified
+                    print(f"  Replaced {replaced} RentRedi deposits with per-unit rent splits")
+                    if unmatched:
+                        print(f"  Unmatched RentRedi deposits (flagged ASK): {unmatched}")
+                    print()
+                    print(f"Updated counts:")
+                    print(f"  Classified: {len(classified)}")
+
+    # =========================================================
+    # 6.6.5 EQUITY CLUSTER PASS (capital contributions / distributions)
+    # =========================================================
+    # Detects groups of equal-amount transactions within a 14-day window.
+    # When cluster size matches the number of members, assigns each to
+    # a member in fixed order (Steve, Josh, Gene, Boris).
+    if not getattr(args, "no_equity_clusters", False):
+        members = rules_module.ENTITY.get("members", [])
+        equity_accounts = rules_module.ENTITY.get("equity_accounts", {})
+        if members and equity_accounts:
+            print()
+            print("=" * 90)
+            print("EQUITY CLUSTER PASS")
+            print("=" * 90)
+            from reconcile.equity_pass import assign_equity_clusters
+            
+            # Run equity assignment on review_items (these are unmatched candidates)
+            review_txns = [item.transaction for item in review_items]
+            assignments, audit = assign_equity_clusters(review_txns, members, equity_accounts)
+            for line in audit:
+                print(f"  {line}")
+            
+            if assignments:
+                # Apply assignments and promote those review items to classified
+                assigned_indices = set()
+                for a in assignments:
+                    txn = review_txns[a.txn_index]
+                    txn.qb_account = a.qb_account
+                    txn.qb_class = a.qb_class
+                    txn.transaction_type = a.transaction_type
+                    txn.classified_by = a.classified_by
+                    classified.append(txn)
+                    assigned_indices.add(a.txn_index)
+                
+                # Remove assigned items from review_items
+                review_items = [
+                    item for i, item in enumerate(review_items)
+                    if i not in assigned_indices
+                ]
+                
+                print()
+                print(f"Updated counts:")
+                print(f"  Classified: {len(classified)}")
+                print(f"  Review queue: {len(review_items)}")
 
     # Snapshot classified transactions BEFORE distribution passes wipe out
     # individual items. The vendor tracker needs to see real vendor names
