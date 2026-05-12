@@ -236,7 +236,22 @@ UNMATCHED_HANDLING = {
 # Bank check patterns observed in property expense sheets when GJ Holdings PCB 3395
 # is the paying account. Catches "gj holdings", "gj holdings 1023", "gj holdings bank", etc.
 BANK_CHECK_PATTERNS = [
-    "gj holdings",
+    "gj holdings",          # explicit GJ Holdings markings
+    "echeck-bare",          # bare "echeck" entries that don't mention other entities
+]
+
+# Entity names that, if mentioned in payment_method, disqualify a bare "echeck" match
+BANK_CHECK_EXCLUDE_ENTITIES = [
+    "vj assets",
+    "vj",
+    "sophia",
+    "jbk",
+    "cambria",
+    "10th fairmount",
+    "veit",
+    "phily properties",
+    "g&j group",
+    "gj group",
 ]
 
 RETAIL_VENDOR_PATTERNS = []

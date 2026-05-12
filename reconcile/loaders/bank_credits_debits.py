@@ -70,6 +70,7 @@ KNOWN_ACCOUNTS = {
     "Bank Service Charges": {"type": "expense", "takes_class": False},
     "Water Expense": {"type": "expense", "takes_class": True},
     "Gas Expense": {"type": "expense", "takes_class": True},
+    "Taxes - Phila": {"type": "expense", "takes_class": True},
 
     # Current assets (Due from)
     "Due from Sophia Holdings": {"type": "asset", "takes_class": False},

@@ -169,7 +169,7 @@ def load_property_entries(property_name, file_id, drive_client=None, default_yea
     entries = []
     skipped_unparseable = 0
     consecutive_bad = 0
-    BAD_ROW_THRESHOLD = 8  # stop after this many consecutive non-parseable rows
+    BAD_ROW_THRESHOLD = 50  # stop after this many consecutive non-parseable rows
 
     for row_idx, row in enumerate(
         sheet.iter_rows(min_row=header_row_num + 1, values_only=True),
@@ -231,9 +231,10 @@ def match_property_transaction(
     txn_amount,
     entries,
     amount_tolerance=1.00,
-    date_tolerance_days=7,
+    date_tolerance_days=14,
     chase_only=True,
     payment_method_patterns=None,
+    exclude_other_entities=None,
 ):
     """Find expense sheet entries matching a transaction.
 
@@ -249,11 +250,23 @@ def match_property_transaction(
     latest = txn_date + timedelta(days=date_tolerance_days)
 
     matches = []
+    excludes_lower = [s.lower() for s in (exclude_other_entities or [])]
     for e in entries:
         # Apply payment method filter (patterns OR chase)
         if payment_method_patterns is not None:
             pm = (e.payment_method or "").lower()
-            if not any(p.lower() in pm for p in payment_method_patterns):
+            matched_pattern = False
+            for p in payment_method_patterns:
+                p_lower = p.lower()
+                if p_lower == "echeck-bare":
+                    # Special token: matches "echeck" if no other entity is mentioned
+                    if "echeck" in pm and not any(x in pm for x in excludes_lower):
+                        matched_pattern = True
+                        break
+                elif p_lower in pm:
+                    matched_pattern = True
+                    break
+            if not matched_pattern:
                 continue
         elif chase_only and not e.is_chase():
             continue

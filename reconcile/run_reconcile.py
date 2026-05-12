@@ -341,6 +341,13 @@ def main():
                 txn = item.transaction
                 src_acct = (txn.source_account or "").lower()
 
+                # Property expense entries represent money spent ON a property.
+                # Bank deposits (positive amounts) can't pay for property work,
+                # so don't try to match deposits against expense sheets.
+                if txn.amount > 0:
+                    still_review_after_property.append(item)
+                    continue
+
                 # Determine payment method patterns based on transaction source
                 if "chase" in src_acct:
                     pmt_patterns = None  # Use chase_only fallback
@@ -360,6 +367,7 @@ def main():
                         txn.date, txn.amount, entries,
                         chase_only=use_chase,
                         payment_method_patterns=pmt_patterns,
+                        exclude_other_entities=getattr(rules_module, "BANK_CHECK_EXCLUDE_ENTITIES", []),
                     )
                     for m in matches:
                         all_matches.append((prop_name, m))
@@ -395,15 +403,22 @@ def main():
                             txn.transaction_type = "Expense"
                     elif is_pre_stab:
                         # Bank check at pre-stab property - capitalize to property asset
-                        txn.qb_account = prop_name  # property address IS the asset account
-                        txn.qb_class = ""           # no class on pre-stab
+                        # (regardless of expense type; pre-stab capitalizes everything)
+                        txn.qb_account = prop_name
+                        txn.qb_class = ""
                         txn.transaction_type = "Asset"
                     else:
-                        # Bank check at stabilized property OR G&J Group default
-                        if not txn.qb_account:
-                            txn.qb_account = "Subcontractors Expense"
-                        if not txn.transaction_type:
+                        # Bank check at stabilized property - route by expense type
+                        entry_desc = (getattr(entry, "description", "") or "").lower()
+                        entry_payee = (getattr(entry, "payee", "") or "").lower()
+                        if "tax" in entry_desc or "phila dept rev" in entry_desc or "phila dept rev" in entry_payee:
+                            txn.qb_account = "Taxes - Phila"
                             txn.transaction_type = "Expense"
+                        else:
+                            if not txn.qb_account:
+                                txn.qb_account = "Subcontractors Expense"
+                            if not txn.transaction_type:
+                                txn.transaction_type = "Expense"
                     txn.classified_by = (
                         f"property_sheet[{prop_name}] row {entry.row_num}: "
                         f"{entry.payee[:30]} {entry.description[:30]}"
