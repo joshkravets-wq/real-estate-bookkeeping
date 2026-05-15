@@ -23,6 +23,7 @@ from reconcile.engine import reconcile
 from reconcile.load import load_pcb_transactions
 from reconcile.load_chase import load_chase_transactions
 from reconcile.loaders.bank_credits_debits import (
+    account_type,
     load_entries as load_bank_credits_entries,
     match_transaction as match_bank_credits,
     interpret_match as interpret_bank_credits_match,
@@ -247,14 +248,21 @@ def main():
             applied_to_classified = 0
             applied_to_review = 0
             still_review_after_overrides = []
+            used_overrides = set()  # track row_nums to prevent same override matching multiple txns
+
+            # Type mapping from account_type() result to QB Type column.
+            _type_map = {"income": "Income", "expense": "Expense", "cogs": "Expense",
+                         "asset": "Asset", "fixed_asset": "Asset", "liability": "Liability",
+                         "bank": "Bank", "equity": "Equity"}
 
             # Apply to already-classified transactions (overwrite if matched)
             for txn in classified:
-                ov = find_override(txn, overrides)
+                ov = find_override(txn, overrides, used_overrides)
                 if ov:
                     txn.qb_account = ov.qb_account
                     txn.qb_class = ov.qb_class
-                    txn.transaction_type = "Expense"  # default; overridden if needed
+                    _acct_type = account_type(ov.qb_account)
+                    txn.transaction_type = _type_map.get(_acct_type, "Expense")
                     txn.classified_by = (
                         f"manual_override[row {ov.row_num}]: "
                         f"{ov.notes[:50]}" if ov.notes else
@@ -265,11 +273,12 @@ def main():
             # Apply to review-queue items (promote to classified if matched)
             for item in review_items:
                 txn = item.transaction
-                ov = find_override(txn, overrides)
+                ov = find_override(txn, overrides, used_overrides)
                 if ov:
                     txn.qb_account = ov.qb_account
                     txn.qb_class = ov.qb_class
-                    txn.transaction_type = "Expense"
+                    _acct_type = account_type(ov.qb_account)
+                    txn.transaction_type = _type_map.get(_acct_type, "Expense")
                     txn.classified_by = (
                         f"manual_override[row {ov.row_num}]: "
                         f"{ov.notes[:50]}" if ov.notes else
@@ -460,7 +469,6 @@ def main():
             bcd_entries = None
 
         if bcd_entries:
-            from reconcile.loaders.bank_credits_debits import account_type
             type_map = {
                 "income": "Income", "expense": "Expense", "cogs": "Expense",
                 "asset": "Asset", "liability": "Liability", "bank": "Bank",

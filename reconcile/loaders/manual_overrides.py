@@ -133,8 +133,14 @@ def load_overrides(file_id):
     return overrides
 
 
-def find_override(txn, overrides):
-    """Find the first override matching this transaction.
+def find_override(txn, overrides, used_overrides=None):
+    """Find the first unused override matching this transaction.
+    
+    Args:
+        txn: The transaction to match.
+        overrides: List of override candidates.
+        used_overrides: Optional set of override row_nums already consumed.
+            Pass the same set across calls to avoid double-matching.
     
     Returns the matching Override or None.
     """
@@ -142,16 +148,18 @@ def find_override(txn, overrides):
     txn_acct = (txn.source_account or "").strip()
 
     for ov in overrides:
+        if used_overrides is not None and ov.row_num in used_overrides:
+            continue
         if ov.txn_date != txn.date:
             continue
         if ov.account != txn_acct:
             continue
         if abs(ov.amount - txn.amount) > 0.01:
             continue
-        # Description substring match (case-insensitive). Empty match = match-all
-        # for the same date+account+amount, which is fine if Josh wants it that way.
         if ov.description_match and ov.description_match.lower() not in txn_desc_lower:
             continue
+        if used_overrides is not None:
+            used_overrides.add(ov.row_num)
         return ov
 
     return None

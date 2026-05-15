@@ -86,6 +86,9 @@ KNOWN_ACCOUNTS = {
 
     # Credit card liabilities
     "Chase Ink 3600": {"type": "liability", "takes_class": False},
+    "Fay Loan 0000426433": {"type": "liability", "takes_class": False},
+    "PCB Loan 9000798251": {"type": "liability", "takes_class": False},
+    "PCB Loan 9000829048": {"type": "liability", "takes_class": False},
     "AMEX": {"type": "liability", "takes_class": False},
 
     # Equity
@@ -100,6 +103,10 @@ KNOWN_ACCOUNTS = {
 
     # Gain/Loss
     "Gain on Sale of 2030 N Lawrence St": {"type": "income", "takes_class": False},
+
+    # Insurance refund (Other Income); takes class for stabilized property refunds.
+    # Pre-stab insurance refunds reduce property asset directly (no class).
+    "Insurance Refund": {"type": "income", "takes_class": True},
 }
 
 
@@ -115,30 +122,75 @@ KNOWN_PROPERTIES = [
     "1010 Fairmount Ave", "2210 Amber St", "1430 N Marston St",
     "2505 Jefferson St", "2119 Hope St", "3435 Mercer St",
     "542 Edgley St", "943 N 43rd St", "6541 Edmund St",
-    "1920 E Harold St", "2101 E Dauphin", "1745 N 29th",
+    "1920 E Harold St", "2101 E Dauphin", "1745 N 29th", "507 W Dauphin St",
     "1948 N Orianna St", "2433 N 6th St", "7338 N 20th St",
     "2428 N Fairhill St",
 ]
 
 
+
+
+# Street suffixes commonly omitted in casual entry
+_STREET_SUFFIXES = ("st", "street", "ave", "avenue", "rd", "road", "ct", "court", "dr", "drive")
+
+
+def _normalize_property(name):
+    """Lowercase, strip trailing 'St'/'Ave'/etc for tolerant property matching."""
+    if not name:
+        return ""
+    s = name.strip().lower()
+    parts = s.split()
+    while parts and parts[-1] in _STREET_SUFFIXES:
+        parts.pop()
+    return " ".join(parts)
+
+
+def _match_property_loosely(name):
+    """Return the canonical KNOWN_PROPERTIES name that matches `name` ignoring case + street suffix."""
+    if not name:
+        return None
+    target = _normalize_property(name)
+    if not target:
+        return None
+    for p in KNOWN_PROPERTIES:
+        if _normalize_property(p) == target:
+            return p
+    return None
+
 def is_known_account(name: str) -> bool:
-    """Return True if name is a recognized QB account (including property fixed assets)."""
-    return name in KNOWN_ACCOUNTS or name in KNOWN_PROPERTIES
+    """Return True if name is a recognized QB account (including property fixed assets).
+    Case-insensitive lookup."""
+    if name is None:
+        return False
+    name_lower = name.strip().lower()
+    return any(k.lower() == name_lower for k in KNOWN_ACCOUNTS) or \
+           any(p.lower() == name_lower for p in KNOWN_PROPERTIES)
 
 
 def account_type(name: str) -> Optional[str]:
-    """Return the type of a known account ('income', 'expense', 'asset', etc.) or None."""
-    if name in KNOWN_ACCOUNTS:
-        return KNOWN_ACCOUNTS[name]["type"]
-    if name in KNOWN_PROPERTIES:
-        return "fixed_asset"
+    """Return the type of a known account ('income', 'expense', 'asset', etc.) or None.
+    Case-insensitive lookup."""
+    if name is None:
+        return None
+    name_lower = name.strip().lower()
+    for k, v in KNOWN_ACCOUNTS.items():
+        if k.lower() == name_lower:
+            return v["type"]
+    for p in KNOWN_PROPERTIES:
+        if p.lower() == name_lower:
+            return "fixed_asset"
     return None
 
 
 def account_takes_class(name: str) -> bool:
-    """Return True if this account requires a class. Properties as fixed assets do not."""
-    if name in KNOWN_ACCOUNTS:
-        return KNOWN_ACCOUNTS[name]["takes_class"]
+    """Return True if this account requires a class. Properties as fixed assets do not.
+    Case-insensitive lookup."""
+    if name is None:
+        return False
+    name_lower = name.strip().lower()
+    for k, v in KNOWN_ACCOUNTS.items():
+        if k.lower() == name_lower:
+            return v["takes_class"]
     return False  # Fixed assets named after property don't take class
 
 
@@ -257,7 +309,7 @@ def match_transaction(
     txn_amount: float,
     entries: List[BankCreditDebitEntry],
     date_tolerance_days: int = 2,
-    amount_tolerance: float = 0.01,
+    amount_tolerance: float = 1.00,
 ) -> List[BankCreditDebitEntry]:
     """Find Bank Credits & Debits entries that match a transaction.
 
@@ -331,16 +383,17 @@ def interpret_match(entry: BankCreditDebitEntry) -> MatchSuggestion:
                     confidence="low",
                     reason=f"QB Account {qb!r} requires a class but Property column is blank.",
                 )
-            if entry.property not in KNOWN_PROPERTIES:
+            canonical_prop = _match_property_loosely(entry.property)
+            if not canonical_prop:
                 return MatchSuggestion(
                     qb_account=qb, qb_class=entry.property,
                     confidence="low",
                     reason=f"Property {entry.property!r} not in KNOWN_PROPERTIES. Possible typo.",
                 )
             return MatchSuggestion(
-                qb_account=qb, qb_class=entry.property,
+                qb_account=qb, qb_class=canonical_prop,
                 confidence="high",
-                reason=f"Josh decided: {qb} + class {entry.property}",
+                reason=f"Josh decided: {qb} + class {canonical_prop}",
             )
         else:
             # Account does not take a class
@@ -354,12 +407,15 @@ def interpret_match(entry: BankCreditDebitEntry) -> MatchSuggestion:
     desc_upper = entry.description.upper()
 
     if entry.property:
-        if entry.property not in KNOWN_PROPERTIES:
+        canonical_prop = _match_property_loosely(entry.property)
+        if not canonical_prop:
             return MatchSuggestion(
                 qb_account=None, qb_class=None,
                 confidence="none",
                 reason=f"Property {entry.property!r} not in KNOWN_PROPERTIES; cannot infer.",
             )
+        # Use canonical name for downstream consistency
+        entry_property_canonical = canonical_prop
 
         # RE tax keyword -> capitalize to property fixed asset
         if "RE TAX" in desc_upper or "REAL ESTATE TAX" in desc_upper:
