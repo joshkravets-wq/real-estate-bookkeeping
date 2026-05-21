@@ -120,8 +120,23 @@ def build_vendor_tracker(transactions, checks_csv=None, vendor_aliases=None, ret
 
     VENDOR_TRACKED_ACCOUNTS = {"Subcontractors Expense", "Construction Costs"}
 
+    def _looks_like_property(name):
+        """Detect if qb_account name looks like a property address (e.g., '5461 W Berks St')."""
+        if not name:
+            return False
+        # Property names start with digits and have a street suffix or directional indicator
+        import re
+        return bool(re.match(r"^\d+\s+[NSEW]?\s*\w+", name))
+
     for txn in transactions:
-        if txn.qb_account not in VENDOR_TRACKED_ACCOUNTS:
+        # Track txns in COGS accounts OR pre-stab property capitalized payments
+        # (Asset type + qb_account looks like a property address)
+        in_cogs = txn.qb_account in VENDOR_TRACKED_ACCOUNTS
+        in_pre_stab_capture = (
+            getattr(txn, "transaction_type", "") == "Asset"
+            and _looks_like_property(txn.qb_account)
+        )
+        if not (in_cogs or in_pre_stab_capture):
             continue
         payee = ""
         # Priority: txn.payee (from property pass match) > checks_csv > description parse
@@ -136,6 +151,16 @@ def build_vendor_tracker(transactions, checks_csv=None, vendor_aliases=None, ret
                 # (most Chase descriptions ARE the vendor name, e.g., "ANGEL HEATING AND COOLIN")
                 payee = txn.description.strip()
         if not payee:
+            continue
+        # Skip bank-description fallbacks: these aren't real vendor names.
+        # Common when Manual Override items don't have payee/check info.
+        payee_lower = payee.strip().lower()
+        BANK_FALLBACK_PREFIXES = (
+            "check", "deposit", "withdrawal",
+            "electronic deposit", "external withdrawal",
+            "external deposit", "mobile deposit",
+        )
+        if any(payee_lower.startswith(p) for p in BANK_FALLBACK_PREFIXES):
             continue
         if _is_retail(payee):
             continue

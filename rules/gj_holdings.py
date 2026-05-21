@@ -254,4 +254,15 @@ BANK_CHECK_EXCLUDE_ENTITIES = [
     "gj group",
 ]
 
-RETAIL_VENDOR_PATTERNS = []
+RETAIL_VENDOR_PATTERNS = [
+    "peco", "philadelphia gas", "phila gas", "pgw",
+    "cityofphila", "city of phila", "city of philadelphia",
+    "phila dept rev",
+    "register of wills", "department of state",
+    "phila revenue", "internal revenue",
+    "chase", "amex", "penn community",
+    "home depot", "lowe", "amazon",
+    "diamond state insurance",
+    "american modern insurance",
+    "liberty mutual", "geico",
+]
