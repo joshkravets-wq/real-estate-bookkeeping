@@ -20,7 +20,7 @@ import sys
 from pathlib import Path
 
 from reconcile.engine import reconcile
-from reconcile.load import load_pcb_transactions
+from reconcile.load import load_pcb_transactions, load_td_transactions
 from reconcile.load_chase import load_chase_transactions
 from reconcile.loaders.bank_credits_debits import (
     account_type,
@@ -66,6 +66,11 @@ def main():
         "--chase-csv",
         default=None,
         help="Path to Chase CSV export (single file). Optional; omit to skip card classification.",
+    )
+    parser.add_argument(
+        "--td-csv",
+        default=None,
+        help="Path to TD Bank CSV (single file) or directory. Optional; for entities banking at TD in addition to PCB.",
     )
     parser.add_argument(
         "--no-bank-credits",
@@ -122,8 +127,17 @@ def main():
     # 1. Load and pair PCB transactions
     print(f"Loading PCB transactions from {args.pcb_dir}...")
     bank_txns, audit_log, pairing = load_pcb_transactions(args.pcb_dir)
-    print(f"  {len(bank_txns)} engine-ready transactions")
+    print(f"  {len(bank_txns)} engine-ready PCB transactions")
     print(f"  {len(audit_log)} dropped pairs (audit trail preserved)")
+
+    # Optionally load TD transactions (no pairing needed for TD)
+    if args.td_csv:
+        print(f"Loading TD transactions from {args.td_csv}...")
+        td_txns = load_td_transactions(args.td_csv)
+        print(f"  {len(td_txns)} engine-ready TD transactions")
+        bank_txns = bank_txns + td_txns
+    else:
+        print("No --td-csv provided; PCB-only")
     print()
 
     # 2. Load rules module

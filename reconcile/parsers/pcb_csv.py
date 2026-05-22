@@ -178,11 +178,49 @@ def parse_pcb_csv(csv_path):
     return transactions
 
 
-def parse_pcb_csv_directory(directory):
-    """Parse all PCB CSVs in a directory and return a combined transaction list,
-    sorted by date then by source account.
+def _is_pcb_checking_csv(csv_path):
+    """Detect whether a CSV is a PCB checking-account export by content.
 
-    Filenames must match pattern '<last4> <anything>.csv' (e.g. '5494 jan-march.csv').
+    PCB checking CSVs have a recognizable preamble:
+      Line 1: "Account Name : Basic Business Checking" (or similar)
+      Line 2: "Account Number : XXXXXXXXXX"
+
+    Loan CSVs (also from PCB) instead say "Account Name : Residential RE Secured"
+    or "Account Name : Construction" — those have Principal/Interest columns
+    and are handled by reconcile.loaders.loan_payments, not this parser.
+
+    Returns True only for checking-account exports.
+    """
+    try:
+        with open(csv_path, "r", encoding="utf-8") as f:
+            line1 = f.readline().strip().lower()
+            line2 = f.readline().strip().lower()
+    except (OSError, UnicodeDecodeError):
+        return False
+
+    if not line1.startswith("account name :"):
+        return False
+    if not line2.startswith("account number :"):
+        return False
+
+    # Exclude loan account types — they have Principal/Interest columns
+    # and are parsed separately by loaders.loan_payments.parse_pcb_loan_csv.
+    loan_markers = ("residential re secured", "construction", "commercial loan")
+    if any(m in line1 for m in loan_markers):
+        return False
+
+    return True
+
+
+def parse_pcb_csv_directory(directory):
+    """Parse all PCB checking CSVs in a directory and return a combined
+    transaction list, sorted by date then by source account.
+
+    Detection is content-based: a file is treated as a PCB checking CSV
+    if its first two lines match the PCB checking preamble (and don't
+    indicate a loan-account export). This supersedes the older
+    filename-prefix heuristic so entity-specific naming conventions
+    (e.g. "10th fair penn jan-march.csv") work without renaming.
     """
     directory = Path(directory)
     if not directory.exists() or not directory.is_dir():
@@ -190,11 +228,16 @@ def parse_pcb_csv_directory(directory):
 
     all_txns = []
     for csv_file in sorted(directory.glob("*.csv")):
-        # Skip output CSVs and other non-PCB files by checking the filename
-        # starts with a 4-digit account number.
-        if not re.match(r"^\d{4}\s", csv_file.name):
-            continue
-        all_txns.extend(parse_pcb_csv(csv_file))
+        # Backward-compat: keep the old 4-digit-prefix fast path for
+        # GJ Group / GJ Holdings, which also satisfy the content check.
+        if re.match(r"^\d{4}\s", csv_file.name) or _is_pcb_checking_csv(csv_file):
+            try:
+                all_txns.extend(parse_pcb_csv(csv_file))
+            except Exception as e:
+                # If a file matched detection but parser blows up, log and skip
+                # rather than crashing the whole load.
+                print(f"  WARNING: skipping {csv_file.name}: {e}")
+                continue
 
     all_txns.sort(key=lambda t: (t.txn_date, t.source_account))
     return all_txns

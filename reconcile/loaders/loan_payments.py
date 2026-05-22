@@ -83,17 +83,25 @@ def _detect_format(csv_path: Path) -> str:
 
 
 def parse_pcb_loan_csv(csv_path: Path, loan_num: str, property_class: str) -> list:
-    """Parse PCB-format loan CSV. Returns list of LoanSplit objects."""
+    """Parse PCB-format loan CSV. Returns list of LoanSplit objects.
+
+    Handles three header shapes:
+      1. Date + Principal + Interest (standard amortizing loan)
+      2. Date + Interest only (interest-only construction loan, no principal column)
+      3. Date + Principal + Interest + Escrow (loans with escrow)
+
+    LIP Disbursement rows (negative Amount Debit, no interest/principal) are
+    netted against same-day regular payments for interest-only loans.
+    """
     with csv_path.open("r", encoding="utf-8") as f:
-        # Skip preamble lines until we hit the header
         reader = csv.reader(f)
         rows = list(reader)
 
-    # Find header row (contains "Date" and "Principal")
+    # Find header row — must have "Date" AND at least one of Principal/Interest
     header_idx = None
     for i, row in enumerate(rows):
-        if any("Date" == cell.strip() for cell in row) and \
-           any("Principal" in cell for cell in row):
+        cells = [c.strip() for c in row]
+        if "Date" in cells and ("Principal" in cells or "Interest" in cells):
             header_idx = i
             break
     if header_idx is None:
@@ -101,37 +109,88 @@ def parse_pcb_loan_csv(csv_path: Path, loan_num: str, property_class: str) -> li
 
     header = [h.strip() for h in rows[header_idx]]
     col = {name: header.index(name) for name in header}
+    has_principal = "Principal" in col
+    has_interest = "Interest" in col
+    has_escrow = "Escrow" in col
+    # LIP disbursements show up in Amount Debit column
+    amt_debit_col = col.get("Amount Debit")
 
-    splits = []
+    # First pass: collect raw rows by date so we can net LIP against payments
+    raw_by_date = {}
     for row in rows[header_idx + 1:]:
-        if not row or not row[col["Date"]].strip():
+        if not row or len(row) <= col["Date"] or not row[col["Date"]].strip():
             continue
         try:
             d = _parse_date(row[col["Date"]])
         except ValueError:
             continue
 
-        prin = _clean_amount(row[col["Principal"]])
-        intr = _clean_amount(row[col["Interest"]])
+        prin = _clean_amount(row[col["Principal"]]) if has_principal else None
+        intr = _clean_amount(row[col["Interest"]]) if has_interest else None
+        escr = _clean_amount(row[col["Escrow"]]) if has_escrow else None
+        debit = _clean_amount(row[amt_debit_col]) if amt_debit_col is not None else None
 
-        if prin is not None and prin != 0:
-            splits.append(LoanSplit(
-                loan_num=loan_num,
-                txn_date=d,
-                component="principal",
-                amount=abs(prin) * -1,  # ensure negative
-                description=f"Loan #{loan_num} principal",
-                property_class=property_class,
-            ))
-        if intr is not None and intr != 0:
-            splits.append(LoanSplit(
-                loan_num=loan_num,
-                txn_date=d,
-                component="interest",
-                amount=abs(intr) * -1,
-                description=f"Loan #{loan_num} interest",
-                property_class=property_class,
-            ))
+        raw_by_date.setdefault(d, []).append({
+            "principal": prin, "interest": intr, "escrow": escr, "debit": debit,
+        })
+
+    splits = []
+    is_interest_only = not has_principal
+
+    for d, entries in sorted(raw_by_date.items()):
+        if is_interest_only:
+            # Net LIP disbursements (negative debit, no interest) against
+            # regular interest payments to capitalize the net amount.
+            total_interest = sum(
+                (e["interest"] for e in entries if e["interest"] is not None),
+                Decimal("0"),
+            )
+            total_lip = sum(
+                (e["debit"] for e in entries
+                 if e["debit"] is not None and e["debit"] < 0 and not e["interest"]),
+                Decimal("0"),
+            )
+            # Net amount to capitalize: |interest| + lip (lip is already negative)
+            net = abs(total_interest) + total_lip
+            if net != 0:
+                splits.append(LoanSplit(
+                    loan_num=loan_num,
+                    txn_date=d,
+                    component="interest",
+                    amount=abs(net) * -1,
+                    description=f"Loan #{loan_num} interest (net of LIP)" if total_lip else f"Loan #{loan_num} interest",
+                    property_class=property_class,
+                ))
+        else:
+            # Standard: emit principal + interest + escrow rows independently
+            for e in entries:
+                if e["principal"] is not None and e["principal"] != 0:
+                    splits.append(LoanSplit(
+                        loan_num=loan_num,
+                        txn_date=d,
+                        component="principal",
+                        amount=abs(e["principal"]) * -1,
+                        description=f"Loan #{loan_num} principal",
+                        property_class=property_class,
+                    ))
+                if e["interest"] is not None and e["interest"] != 0:
+                    splits.append(LoanSplit(
+                        loan_num=loan_num,
+                        txn_date=d,
+                        component="interest",
+                        amount=abs(e["interest"]) * -1,
+                        description=f"Loan #{loan_num} interest",
+                        property_class=property_class,
+                    ))
+                if e["escrow"] is not None and e["escrow"] != 0:
+                    splits.append(LoanSplit(
+                        loan_num=loan_num,
+                        txn_date=d,
+                        component="escrow",
+                        amount=abs(e["escrow"]) * -1,
+                        description=f"Loan #{loan_num} escrow",
+                        property_class=property_class,
+                    ))
     return splits
 
 

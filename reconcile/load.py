@@ -142,3 +142,46 @@ if __name__ == "__main__":
     print()
     print(f"Sum of all amounts (kept + dropped): {raw_total:.2f}")
     print("(Should equal sum of raw bank transactions for the period)")
+
+
+def _td_csv_to_engine(td_txn):
+    """Convert a TD parser-level Transaction into an EngineTransaction.
+
+    The TD parser already returns Transaction objects that match the engine's
+    shape (date, description, amount, source_account, raw_data). We just need
+    to ensure raw_data has a source_parser tag.
+    """
+    raw_data = dict(td_txn.raw_data or {})
+    raw_data.setdefault("source_parser", "td_csv")
+
+    return EngineTransaction(
+        source_account=td_txn.source_account,
+        date=td_txn.date,
+        description=td_txn.description,
+        amount=float(td_txn.amount),
+        raw_data=raw_data,
+    )
+
+
+def load_td_transactions(source):
+    """Load TD Bank transactions from a CSV file or directory of CSVs.
+
+    Returns a list of engine-ready EngineTransaction objects. TD CSVs have no
+    NSF/reversal artifacts that need pairing (unlike PCB), so this is a
+    simpler load path than load_pcb_transactions.
+    """
+    from reconcile.parsers.td_csv import parse_td_csv
+
+    source = Path(source)
+    raw_txns = []
+
+    if source.is_dir():
+        for csv_path in sorted(source.glob("*.csv")):
+            raw_txns.extend(parse_td_csv(csv_path))
+    elif source.is_file():
+        raw_txns = parse_td_csv(source)
+    else:
+        raise FileNotFoundError(f"TD source not found: {source}")
+
+    return [_td_csv_to_engine(t) for t in raw_txns]
+

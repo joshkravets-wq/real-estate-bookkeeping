@@ -101,6 +101,23 @@ def matches_rule(txn: Transaction, rule: dict) -> bool:
         if abs(abs(txn.amount) - match["amount_equals"]) > 0.01:
             return False
 
+    if "amount_in" in match:
+        # Match against a list of allowed signed amounts (with ±0.01 tolerance).
+        # Useful for known recurring bills with multiple billing amounts.
+        if not any(abs(txn.amount - allowed) <= 0.01 for allowed in match["amount_in"]):
+            return False
+
+    if "source_account_equals" in match:
+        # Discriminate by which bank/card account the transaction came from.
+        # Needed for multi-bank entities (e.g. 10th Fairmount: TD + PCB).
+        if txn.source_account != match["source_account_equals"]:
+            return False
+
+    if "source_account_in" in match:
+        # Variant: match against a list of allowed source accounts.
+        if txn.source_account not in match["source_account_in"]:
+            return False
+
     if "is_check" in match:
         if match["is_check"] != txn.is_check:
             return False
