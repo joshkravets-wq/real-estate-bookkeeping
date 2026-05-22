@@ -22,3 +22,4 @@ output/
 
 # OAuth credentials and tokens (NEVER commit these)
 credentials/
+*.bak
