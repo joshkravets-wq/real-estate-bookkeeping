@@ -35,6 +35,7 @@ from reconcile.loaders.property_expenses import (
 from reconcile.loaders.manual_overrides import (
     load_overrides,
     find_override,
+    get_off_bank_journals,
 )
 from rules.properties_registry import ACTIVE_RENO_FILE_IDS, MANUAL_OVERRIDES_FILE_ID
 from reconcile.output import write_engine_output
@@ -307,6 +308,33 @@ def main():
             print()
             print(f"  Overrode classified items: {applied_to_classified}")
             print(f"  Promoted review items: {applied_to_review}")
+
+            # Emit off-bank journal rows as synthetic classified transactions.
+            # These have no bank counterpart (e.g., sale-clearing journals).
+            off_bank_journals = get_off_bank_journals(overrides)
+            if off_bank_journals:
+                from reconcile.engine import Transaction as _Transaction
+                emitted = 0
+                for ov in off_bank_journals:
+                    _acct_type = account_type(ov.qb_account)
+                    ttype = _type_map.get(_acct_type, "Expense")
+                    classified.append(_Transaction(
+                        source_account=ov.account,
+                        date=ov.txn_date,
+                        description=ov.notes or ov.description_match or "Off-bank journal entry",
+                        amount=float(ov.amount),
+                        qb_account=ov.qb_account,
+                        qb_class=ov.qb_class or "",
+                        transaction_type=ttype,
+                        classified_by=(
+                            f"manual_override[row {ov.row_num}, off-bank]: "
+                            f"{ov.notes[:50]}" if ov.notes else
+                            f"manual_override[row {ov.row_num}, off-bank]"
+                        ),
+                    ))
+                    emitted += 1
+                print(f"  Off-bank journal entries emitted: {emitted}")
+
             print()
             print(f"Updated counts:")
             print(f"  Classified: {len(classified)}")
@@ -819,6 +847,53 @@ def main():
                 print(f"Updated counts:")
                 print(f"  Classified: {len(classified)}")
                 print(f"  Review queue: {len(review_items)}")
+
+    # =========================================================
+    # 6.6.6 STORMWATER ROUTING PASS (10th Fairmount)
+    # =========================================================
+    # Routes STORMWATER_TD-marked transactions to properties using an ordered
+    # routing table from the rules module. Activates only if (a) the rules
+    # module defines STORMWATER_ROUTING_TD, and (b) at least one classified
+    # transaction has qb_account == "STORMWATER_TD".
+    stormwater_routing = getattr(rules_module, "STORMWATER_ROUTING_TD", None)
+    if stormwater_routing and any(t.qb_account == "STORMWATER_TD" for t in classified):
+        print()
+        print("=" * 90)
+        print("STORMWATER ROUTING PASS")
+        print("=" * 90)
+        from reconcile.loaders.stormwater import assign_stormwater_bills
+        sw_assignments, sw_review_idx, sw_audit = assign_stormwater_bills(
+            classified, stormwater_routing
+        )
+        for line in sw_audit:
+            print(line)
+
+        # Apply assignments
+        for a in sw_assignments:
+            t = classified[a.txn_index]
+            t.qb_account = a.qb_account
+            t.qb_class = a.qb_class
+            t.transaction_type = a.transaction_type
+            t.classified_by = a.classified_by
+            if a.description_suffix and a.description_suffix not in t.description:
+                t.description = f"{t.description} — {a.description_suffix}"
+
+        # Move ungrouped (size-mismatch) stormwater items to review queue
+        from reconcile.engine import ReviewItem as _ReviewItem
+        for idx in sw_review_idx:
+            t = classified[idx]
+            review_items.append(_ReviewItem(
+                transaction=t,
+                reason="Stormwater group size doesn't match routing table; route manually."
+            ))
+        classified = [t for i, t in enumerate(classified) if i not in set(sw_review_idx)]
+
+        print()
+        print(f"  Routed: {len(sw_assignments)}")
+        print(f"  Sent to review: {len(sw_review_idx)}")
+        print(f"Updated counts:")
+        print(f"  Classified: {len(classified)}")
+        print(f"  Review queue: {len(review_items)}")
 
     # Snapshot classified transactions BEFORE distribution passes wipe out
     # individual items. The vendor tracker needs to see real vendor names

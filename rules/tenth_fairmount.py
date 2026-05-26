@@ -169,7 +169,7 @@ BANK_RULES = [
         "match": {
             "source_account_equals": "TD 3139011",
             "description_contains": "CITYOFPHILA",
-            "amount_equals": -21.64,
+            "amount_equals": 21.64,
         },
         "account": "STORMWATER_TD",
         "class": "STORMWATER_TD",

@@ -39,6 +39,7 @@ class Override:
     approved_by: str
     approved_date: Optional[date]
     notes: str
+    is_off_bank_journal: bool = False
 
 
 def _parse_date(value):
@@ -117,6 +118,14 @@ def load_overrides(file_id):
             print(f"  WARNING: row {row_num} skipped (missing required field)")
             continue
 
+        # Detect off-bank journal flag (truthy string in the optional column)
+        is_off_bank = False
+        if off_bank_col is not None and off_bank_col < len(row):
+            raw_flag = row[off_bank_col]
+            if raw_flag is not None:
+                flag_str = str(raw_flag).strip().lower()
+                is_off_bank = flag_str in ("x", "y", "yes", "true", "1", "✓", "journal")
+
         overrides.append(Override(
             row_num=row_num,
             txn_date=txn_date,
@@ -128,6 +137,7 @@ def load_overrides(file_id):
             approved_by=approved_by,
             approved_date=approved_date,
             notes=notes,
+            is_off_bank_journal=is_off_bank,
         ))
 
     return overrides
@@ -180,3 +190,14 @@ if __name__ == "__main__":
         print(f"    approved_by: {ov.approved_by} on {ov.approved_date}")
         print(f"    notes: {ov.notes}")
         print()
+
+
+def get_off_bank_journals(overrides):
+    """Return only the Override rows marked as off-bank journals.
+
+    These rows are emitted unconditionally as synthetic classified transactions
+    — they do NOT need to match a bank transaction. Used for sale clearing
+    journals, refinance journals, and other accounting entries that don't
+    appear in any bank CSV.
+    """
+    return [ov for ov in overrides if ov.is_off_bank_journal]
