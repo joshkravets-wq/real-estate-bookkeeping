@@ -94,6 +94,9 @@ def load_overrides(file_id):
 
     # Index columns
     col = {h: i for i, h in enumerate(header)}
+    # Optional: off-bank journal column. When truthy, the row emits unconditionally
+    # as a synthetic classified transaction (no bank match required).
+    off_bank_col = col.get("off-bank journal")
 
     for row_num, row in enumerate(rows[1:], start=2):
         # Skip empty rows

@@ -460,12 +460,35 @@ def main():
                         txn.transaction_type = "Asset"
                     else:
                         # Bank check at stabilized property - route by expense type
+                        # based on patterns in the matched expense sheet row.
                         entry_desc = (getattr(entry, "description", "") or "").lower()
                         entry_payee = (getattr(entry, "payee", "") or "").lower()
-                        if "tax" in entry_desc or "phila dept rev" in entry_desc or "phila dept rev" in entry_payee:
+                        combined = f"{entry_desc} {entry_payee}"
+
+                        if "tax" in entry_desc or "phila dept rev" in combined:
                             txn.qb_account = "Taxes - Phila"
                             txn.transaction_type = "Expense"
+                        elif any(k in combined for k in ("insurance", "foremost", "homesite", "policy", "premium")):
+                            txn.qb_account = "Insurance Expense"
+                            txn.transaction_type = "Expense"
+                        elif "water" in combined or "stormwater" in combined or "cityofphila water" in combined:
+                            txn.qb_account = "Water"
+                            txn.transaction_type = "Expense"
+                        elif any(k in combined for k in ("gas", "pgw", "philadelphia gas")):
+                            txn.qb_account = "Gas Expense"
+                            txn.transaction_type = "Expense"
+                        elif any(k in combined for k in ("peco", "electric")):
+                            txn.qb_account = "PECO Expense"
+                            txn.transaction_type = "Expense"
+                        elif any(k in combined for k in ("mortgage", "loan payment", "principal")):
+                            # Loans handled by loan_split pass; if it reaches here it's an
+                            # unsplit loan payment — leave to manual review.
+                            if not txn.qb_account:
+                                txn.qb_account = "ASK"
+                            if not txn.transaction_type:
+                                txn.transaction_type = "Expense"
                         else:
+                            # Default: subcontractor / R&M / construction work
                             if not txn.qb_account:
                                 txn.qb_account = "Subcontractors Expense"
                             if not txn.transaction_type:

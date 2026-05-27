@@ -218,98 +218,202 @@ def build_vendor_tracker(transactions, checks_csv=None, vendor_aliases=None, ret
 
 
 def build_summary(transactions):
-    account_totals = defaultdict(float)
-    class_totals = defaultdict(float)
-    cogs_accounts = {"Subcontractors Expense", "Construction Costs"}
-    income_accounts = set()
-    op_ex_accounts = set()
-    asset_accounts = set()
-    liability_accounts = set()
-    bank_accounts = set()
+    """Build the reconciliation summary section appended to the Processor CSV.
 
-    INCOME_KEYWORDS = ["Income"]
-    OP_EX_KEYWORDS = ["Expense", "Service Charges"]
-    ASSET_KEYWORDS = ["Due from"]
-    LIABILITY_KEYWORDS = ["Chase Ink", "AMEX", "Loan"]
-    BANK_KEYWORDS = ["PCB"]
+    Auto-detects entity shape from transaction data:
+      - Pre-stab property capitalization (property name as qb_account)
+      - Stabilized property P&L (property name as qb_class)
+      - Equity activity (member capital accounts)
+      - Intercompany (Due from / Due to accounts)
+      - Loans, banks, COGS
+      - Major events (Gain on Sale, large txns > $100K)
+    """
+    account_totals = defaultdict(float)
+    account_counts = defaultdict(int)
+    class_totals = defaultdict(float)
+    # (qb_account, qb_class) -> [list of (date, amount, description)]
+    txn_index = defaultdict(list)
 
     for txn in transactions:
         if not txn.qb_account:
             continue
         account_totals[txn.qb_account] += txn.amount
-        class_totals[(txn.qb_account, txn.qb_class or "")] += txn.amount
-        acct = txn.qb_account
-        if acct in cogs_accounts:
-            pass
-        elif any(kw in acct for kw in INCOME_KEYWORDS):
-            income_accounts.add(acct)
-        elif any(kw in acct for kw in ASSET_KEYWORDS):
+        account_counts[txn.qb_account] += 1
+        klass = txn.qb_class or ""
+        class_totals[(txn.qb_account, klass)] += txn.amount
+        txn_index[txn.qb_account].append((txn.date, txn.amount, txn.description))
+
+    # ---- Categorize accounts ----
+    income_accounts = set()
+    expense_accounts = set()
+    cogs_accounts = {"Subcontractors Expense", "Construction Costs"}
+    asset_accounts = set()              # "Due from X" intercompany
+    pre_stab_property_accts = set()     # Property name as qb_account
+    liability_accounts = set()
+    bank_accounts = set()
+    equity_accounts = set()
+    gain_on_sale_accounts = set()
+    other_accounts = set()
+
+    INCOME_KW = ["Income", "Rental Income"]
+    EXPENSE_KW = ["Expense", "Service Charges", "Taxes -", "Water", "Insurance",
+                  "Gas Expense", "PECO Expense", "Professional Fees"]
+    LIABILITY_KW = ["Loan", "Chase Ink", "AMEX", "Construction Loan"]
+    BANK_KW = ["PCB", "TD ", "Penn Community"]
+    EQUITY_KW = ["Capital:", "Capital ", "Contribution", "Draw", "Equity"]
+    INTERCO_KW = ["Due from", "Due to"]
+    GAIN_KW = ["Gain on Sale", "Loss on Sale"]
+
+    # Property name detection: account names that look like addresses
+    # Heuristic: contains a number followed by a space and an uppercase word
+    import re
+    PROPERTY_NAME_REGEX = re.compile(r"^\d+[A-Z]?\s+[A-Z]")
+
+    for acct in account_totals.keys():
+        if any(kw in acct for kw in GAIN_KW):
+            gain_on_sale_accounts.add(acct)
+        elif any(kw in acct for kw in EQUITY_KW):
+            equity_accounts.add(acct)
+        elif any(kw in acct for kw in INTERCO_KW):
             asset_accounts.add(acct)
-        elif any(kw in acct for kw in BANK_KEYWORDS):
-            bank_accounts.add(acct)
-        elif any(kw in acct for kw in LIABILITY_KEYWORDS):
+        elif acct in cogs_accounts:
+            pass  # handled separately
+        elif PROPERTY_NAME_REGEX.match(acct) or acct.endswith(":Land"):
+            pre_stab_property_accts.add(acct)
+        elif any(kw in acct for kw in LIABILITY_KW):
             liability_accounts.add(acct)
-        elif any(kw in acct for kw in OP_EX_KEYWORDS):
-            op_ex_accounts.add(acct)
+        elif any(kw in acct for kw in BANK_KW):
+            bank_accounts.add(acct)
+        elif any(kw in acct for kw in INCOME_KW):
+            income_accounts.add(acct)
+        elif any(kw in acct for kw in EXPENSE_KW):
+            expense_accounts.add(acct)
+        else:
+            other_accounts.add(acct)
 
     rows = []
-    rows.append(["", "SUMMARY", "", "", "", "", "", "", "", ""])
-    rows.append([])
-    rows.append(["", "P&L SUMMARY", "", "", "", "", "", "", "", ""])
-
-    total_income = sum(account_totals[a] for a in income_accounts)
-    total_cogs = -sum(account_totals[a] for a in cogs_accounts if a in account_totals)
-    total_op_ex = -sum(account_totals[a] for a in op_ex_accounts)
-    net_income = total_income - total_cogs - total_op_ex
-
-    if income_accounts:
-        for acct in sorted(income_accounts):
-            rows.append(["", "", f"  {acct}", "", format_amount(account_totals[acct]), "", "", "", "", ""])
-        rows.append(["", "", "Total Income", "", format_amount(total_income), "", "", "", "", ""])
-        rows.append([])
-
-    if any(a in account_totals for a in cogs_accounts):
-        rows.append(["", "", "COGS", "", "", "", "", "", "", ""])
-        for acct in sorted(cogs_accounts):
-            if acct in account_totals:
-                rows.append(["", "", f"  {acct}", "", format_amount(-account_totals[acct]), "", "", "", "", ""])
-        rows.append(["", "", "Total COGS", "", format_amount(total_cogs), "", "", "", "", ""])
-        rows.append([])
-
-    if op_ex_accounts:
-        rows.append(["", "", "Operating Expenses", "", "", "", "", "", "", ""])
-        for acct in sorted(op_ex_accounts):
-            rows.append(["", "", f"  {acct}", "", format_amount(-account_totals[acct]), "", "", "", "", ""])
-        rows.append(["", "", "Total Op Ex", "", format_amount(total_op_ex), "", "", "", "", ""])
-        rows.append([])
-
-    rows.append(["", "", "NET INCOME (LOSS)", "", format_amount(net_income), "", "", "", "", ""])
+    rows.append(["", "=" * 80, "", "", "", "", "", "", "", ""])
+    rows.append(["", "RECONCILIATION SUMMARY", "", "", "", "", "", "", "", ""])
+    rows.append(["", "=" * 80, "", "", "", "", "", "", "", ""])
     rows.append([])
 
-    cogs_by_class = defaultdict(lambda: defaultdict(float))
+    # ---- MAJOR EVENTS ----
+    rows.append(["", "MAJOR EVENTS", "", "", "", "", "", "", "", ""])
+    has_events = False
+
+    # Sales (Gain on Sale accounts)
+    for acct in sorted(gain_on_sale_accounts):
+        rows.append(["", "", f"Sale event: {acct}", "",
+                     format_amount(account_totals[acct]),
+                     f"({account_counts[acct]} txns)", "", "", "", ""])
+        has_events = True
+
+    # Large txns (>$100K abs)
+    large_txns = []
+    for acct, txns in txn_index.items():
+        for d, amt, desc in txns:
+            if abs(amt) >= 100000:
+                large_txns.append((d, amt, acct, desc))
+    if large_txns:
+        rows.append(["", "", "Large transactions (≥$100,000):", "", "", "", "", "", "", ""])
+        for d, amt, acct, desc in sorted(large_txns):
+            d_str = d.isoformat() if hasattr(d, "isoformat") else str(d)
+            rows.append(["", "", f"  {d_str}", "",
+                         format_amount(amt),
+                         f"{acct}", "", "", "", ""])
+        has_events = True
+
+    if not has_events:
+        rows.append(["", "", "(none)", "", "", "", "", "", "", ""])
+    rows.append([])
+
+    # ---- P&L BY PROPERTY (stabilized only) ----
+    pl_by_class = defaultdict(lambda: {"income": 0.0, "expense": 0.0})
     for (acct, klass), amt in class_totals.items():
-        if acct in cogs_accounts and klass:
-            cogs_by_class[klass][acct] = -amt
+        if not klass:
+            continue
+        if acct in income_accounts:
+            pl_by_class[klass]["income"] += amt
+        elif acct in expense_accounts or acct in cogs_accounts:
+            pl_by_class[klass]["expense"] += amt
 
-    if cogs_by_class:
-        rows.append(["", "COGS BY CLASS", "", "", "", "", "", "", "", ""])
-        for klass in sorted(cogs_by_class.keys()):
-            class_total = sum(cogs_by_class[klass].values())
-            rows.append(["", "", klass, "", format_amount(class_total), "", "", "", "", klass])
-            for acct in sorted(cogs_by_class[klass]):
-                rows.append(["", "", f"    {acct}", "", format_amount(cogs_by_class[klass][acct]), "", "", "", "", klass])
+    if pl_by_class:
+        rows.append(["", "P&L BY PROPERTY (stabilized)", "", "", "", "", "", "", "", ""])
+        for klass in sorted(pl_by_class.keys()):
+            pl = pl_by_class[klass]
+            net = pl["income"] + pl["expense"]
+            rows.append(["", "", klass, "", "", "", "", "", "", klass])
+            rows.append(["", "", "  Income", "", format_amount(pl["income"]), "", "", "", "", klass])
+            rows.append(["", "", "  Expenses", "", format_amount(pl["expense"]), "", "", "", "", klass])
+            rows.append(["", "", "  Net P&L", "", format_amount(net), "", "", "", "", klass])
         rows.append([])
 
-    if asset_accounts or liability_accounts or bank_accounts:
-        rows.append(["", "BALANCE SHEET IMPACTS", "", "", "", "", "", "", "", ""])
-        if bank_accounts:
-            rows.append(["", "", "Bank account net activity", "", "", "", "", "", "", ""])
-            for acct in sorted(bank_accounts):
-                rows.append(["", "", f"  {acct}", "", format_amount(account_totals[acct]), "", "", "", "", ""])
-        for acct in sorted(asset_accounts):
-            rows.append(["", "", f"  {acct} (asset)", "", format_amount(account_totals[acct]), "", "", "", "", ""])
+    # ---- ASSET CAPITALIZATION (pre-stab properties) ----
+    if pre_stab_property_accts:
+        rows.append(["", "ASSET CAPITALIZATION (pre-stab properties)", "", "", "", "", "", "", "", ""])
+        total_capitalized = 0.0
+        for acct in sorted(pre_stab_property_accts):
+            amt = account_totals[acct]
+            total_capitalized += amt
+            rows.append(["", "", acct, "",
+                         format_amount(amt),
+                         f"({account_counts[acct]} txns)", "", "", "", ""])
+        rows.append(["", "", "Total asset additions/clearings", "",
+                     format_amount(total_capitalized), "", "", "", "", ""])
+        rows.append([])
+
+    # ---- LIABILITIES ----
+    if liability_accounts:
+        rows.append(["", "LIABILITY CHANGES", "", "", "", "", "", "", "", ""])
         for acct in sorted(liability_accounts):
-            rows.append(["", "", f"  {acct} (liability)", "", format_amount(account_totals[acct]), "", "", "", "", ""])
+            rows.append(["", "", acct, "",
+                         format_amount(account_totals[acct]),
+                         f"({account_counts[acct]} txns)", "", "", "", ""])
+        rows.append([])
+
+    # ---- INTERCOMPANY ----
+    if asset_accounts:
+        rows.append(["", "INTERCOMPANY (Due from / Due to)", "", "", "", "", "", "", "", ""])
+        for acct in sorted(asset_accounts):
+            rows.append(["", "", acct, "",
+                         format_amount(account_totals[acct]),
+                         f"({account_counts[acct]} txns)", "", "", "", ""])
+        rows.append([])
+
+    # ---- EQUITY ACTIVITY ----
+    if equity_accounts:
+        rows.append(["", "EQUITY ACTIVITY", "", "", "", "", "", "", "", ""])
+        contribs = sum(account_totals[a] for a in equity_accounts if account_totals[a] > 0)
+        draws = sum(account_totals[a] for a in equity_accounts if account_totals[a] < 0)
+        for acct in sorted(equity_accounts):
+            rows.append(["", "", acct, "",
+                         format_amount(account_totals[acct]),
+                         f"({account_counts[acct]} txns)", "", "", "", ""])
+        rows.append(["", "", "Total contributions", "", format_amount(contribs), "", "", "", "", ""])
+        rows.append(["", "", "Total distributions", "", format_amount(draws), "", "", "", "", ""])
+        rows.append(["", "", "Net equity change", "", format_amount(contribs + draws), "", "", "", "", ""])
+        rows.append([])
+
+    # ---- TOP-LEVEL P&L ROLLUP ----
+    total_income = sum(account_totals[a] for a in income_accounts) + sum(account_totals[a] for a in gain_on_sale_accounts)
+    total_expense = sum(account_totals[a] for a in expense_accounts)
+    total_cogs = sum(account_totals[a] for a in cogs_accounts if a in account_totals)
+    net_pl = total_income + total_expense + total_cogs
+
+    rows.append(["", "OVERALL P&L (this period)", "", "", "", "", "", "", "", ""])
+    rows.append(["", "", "Total income (incl. gains)", "", format_amount(total_income), "", "", "", "", ""])
+    if total_cogs != 0:
+        rows.append(["", "", "Total COGS", "", format_amount(total_cogs), "", "", "", "", ""])
+    rows.append(["", "", "Total expenses", "", format_amount(total_expense), "", "", "", "", ""])
+    rows.append(["", "", "NET P&L", "", format_amount(net_pl), "", "", "", "", ""])
+    rows.append([])
+
+    # ---- ACCOUNT-LEVEL ROLLUP (everything) ----
+    rows.append(["", "ACCOUNT-LEVEL ROLLUP", "", "", "", "", "", "", "", ""])
+    rows.append(["", "Account", "", "Count", "Net Amount", "", "", "", "", ""])
+    for acct in sorted(account_totals.keys(), key=lambda a: -abs(account_totals[a])):
+        rows.append(["", "", acct, account_counts[acct],
+                     format_amount(account_totals[acct]), "", "", "", "", ""])
 
     return rows
 
