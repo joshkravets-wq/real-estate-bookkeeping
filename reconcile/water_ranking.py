@@ -60,18 +60,46 @@ def _amount_matches(actual: float, target: float, tolerance: float = AMOUNT_TOLE
     return abs(abs(actual) - target) <= tolerance
 
 
-def assign_water_bills(transactions: list) -> tuple:
+def assign_water_bills(transactions: list, rules_module=None) -> tuple:
     """
     Find water transactions in `transactions`, apply fixed-amount + ranking rules.
-    
+
     Args:
       transactions: list of Transaction objects
-    
+      rules_module: optional rules module. If provided, reads:
+        - WATER_FIXED_RULES (dict: amount -> (qb_account, qb_class, type, label))
+        - WATER_LOT_CONFIG (dict: {"amount": float, "properties": [str, ...]})
+        - WATER_VARIABLE_RANK (list of (qb_account, qb_class, type, label))
+        - WATER_RANK_FALLBACK_SKIP_IF_AMOUNT (float or None): if a fixed-amount
+          matching this value appears in a month, skip rank-3 fallback.
+        - WATER_RANK_FALLBACK (tuple): (qb_account, qb_class, type, label) for rank-3
+          fallback property (only used if WATER_RANK_FALLBACK_SKIP_IF_AMOUNT not seen).
+      If rules_module is None or doesn't define these, falls back to GJ Holdings
+      hardcoded defaults (preserves backward compat).
+
     Returns:
       (assignments: list of WaterAssignment,
        review_indices: list of txn indices flagged for review,
        audit_log: list of strings)
     """
+    # Read config from rules module, with GJ Holdings defaults
+    fixed_rules = getattr(rules_module, "WATER_FIXED_RULES", None) or FIXED_AMOUNT_RULES
+    lot_cfg_raw = getattr(rules_module, "WATER_LOT_CONFIG", None) or {
+        "amount": LOT_AMOUNT, "properties": LOT_PROPERTIES,
+    }
+    # Normalize: WATER_LOT_CONFIG can be a single dict OR a list of dicts.
+    # Each entry: {"amount": float, "properties": [str, ...], "type": "Asset"|"Expense" (optional)}
+    if isinstance(lot_cfg_raw, dict):
+        lot_configs = [lot_cfg_raw]
+    else:
+        lot_configs = list(lot_cfg_raw)
+
+    variable_rank = getattr(rules_module, "WATER_VARIABLE_RANK", None) or VARIABLE_RANK_PROPERTIES
+    fallback_skip_amt = getattr(rules_module, "WATER_RANK_FALLBACK_SKIP_IF_AMOUNT", 81.49)
+    fallback_props = getattr(rules_module, "WATER_RANK_FALLBACK", None) or (
+        "Water Expense", "1948 N Orianna St", "Expense", "Orianna fallback",
+    )
+
     audit = []
 
     # Step 1: Find water transactions
@@ -97,22 +125,28 @@ def assign_water_bills(transactions: list) -> tuple:
     # Step 2: Apply fixed-amount rules
     handled = set()
     fixed_amount_present_per_month = defaultdict(set)  # month_key -> set of fixed amounts seen
-    lot_chrono_per_month = defaultdict(list)  # month_key -> list of indices for lot bills (preserve order)
+    # Lot bills queued per (month, lot_config_idx) so multiple lot groups can coexist
+    lot_chrono_per_month = defaultdict(list)  # (month_key, lot_cfg_idx) -> list of indices
 
     for i in water_indices:
         t = transactions[i]
         amt = abs(t.amount)
         month_key = (t.date.year, t.date.month)
 
-        # Lot bill?
-        if _amount_matches(amt, LOT_AMOUNT):
-            lot_chrono_per_month[month_key].append(i)
-            handled.add(i)
+        # Lot bill? Try each configured lot group.
+        lot_matched = False
+        for lot_idx, lot_entry in enumerate(lot_configs):
+            if _amount_matches(amt, lot_entry["amount"]):
+                lot_chrono_per_month[(month_key, lot_idx)].append(i)
+                handled.add(i)
+                lot_matched = True
+                break
+        if lot_matched:
             continue
 
         # Other fixed amounts?
         matched = False
-        for fixed_amt, (qb_acct, qb_class, ttype, label) in FIXED_AMOUNT_RULES.items():
+        for fixed_amt, (qb_acct, qb_class, ttype, label) in fixed_rules.items():
             if _amount_matches(amt, fixed_amt):
                 assignments.append(WaterAssignment(
                     txn_index=i,
@@ -129,19 +163,31 @@ def assign_water_bills(transactions: list) -> tuple:
             continue
         # Otherwise, leave unhandled for ranking pass
 
-    # Step 3: Assign lots chronologically per month
-    for month_key, lot_indices in lot_chrono_per_month.items():
-        # Sort by date ascending (already chronological since transactions are date-ordered, but be safe)
+    # Step 3: Assign lots chronologically per month, per lot config group
+    for (month_key, lot_idx), lot_indices in lot_chrono_per_month.items():
+        lot_entry = lot_configs[lot_idx]
+        lot_amount_value = lot_entry["amount"]
+        lot_properties_value = lot_entry["properties"]
+        lot_type = lot_entry.get("type", "Asset")
+        # Stabilized: qb_account = "Water Expense", class = property
+        # Pre-stab (default): qb_account = property name, no class
+        # Sort by date ascending
         lot_indices_sorted = sorted(lot_indices, key=lambda i: transactions[i].date)
         for j, idx in enumerate(lot_indices_sorted):
-            if j < len(LOT_PROPERTIES):
-                prop = LOT_PROPERTIES[j]
+            if j < len(lot_properties_value):
+                prop = lot_properties_value[j]
+                if lot_type == "Expense":
+                    qb_acct = "Water Expense"
+                    qb_class = prop
+                else:
+                    qb_acct = prop
+                    qb_class = ""
                 assignments.append(WaterAssignment(
                     txn_index=idx,
-                    qb_account=prop,
-                    qb_class="",
-                    transaction_type="Asset",
-                    classified_by=f"water_lot[${LOT_AMOUNT:.2f} chrono {j+1} - {prop}]",
+                    qb_account=qb_acct,
+                    qb_class=qb_class,
+                    transaction_type=lot_type,
+                    classified_by=f"water_lot[${lot_amount_value:.2f} chrono {j+1} - {prop}]",
                 ))
             else:
                 review_indices.append(idx)
@@ -164,44 +210,38 @@ def assign_water_bills(transactions: list) -> tuple:
             reverse=True,
         )
 
-        has_orianna_recurring = 81.49 in fixed_amount_present_per_month[month_key]
+        has_fallback_skip_amount = fallback_skip_amt is not None and fallback_skip_amt in fixed_amount_present_per_month[month_key]
+
+        # GJ Holdings backward-compat: if variable_rank has only 2 entries but
+        # fallback_props is provided, append fallback as rank-3 (subject to skip-amount logic).
+        effective_ranks = list(variable_rank)
+        rank3_is_fallback = False
+        if len(effective_ranks) == 2 and fallback_props:
+            effective_ranks.append(fallback_props)
+            rank3_is_fallback = True
 
         for rank, idx in enumerate(indices_ranked):
-            if rank == 0:
-                # Highest -> Norris regular
-                qb_acct, qb_class, ttype, label = VARIABLE_RANK_PROPERTIES[0]
+            # Skip rank 3 (effective_ranks[2]) if fallback-skip amount seen this month
+            # AND rank-3 is the dynamically-added fallback (GJ Holdings semantics).
+            if rank == 2 and rank3_is_fallback and has_fallback_skip_amount:
+                review_indices.append(idx)
+                audit.append(f"  MONTH {month_key}: rank-3 ${abs(transactions[idx].amount):.2f} -> review (fallback skipped because ${fallback_skip_amt:.2f} present)")
+                continue
+
+            if rank < len(effective_ranks):
+                qb_acct, qb_class, ttype, label = effective_ranks[rank]
+                rank_label = "highest" if rank == 0 else f"rank-{rank+1}"
                 assignments.append(WaterAssignment(
                     txn_index=idx,
                     qb_account=qb_acct,
                     qb_class=qb_class,
                     transaction_type=ttype,
-                    classified_by=f"water_rank[month {month_key[0]}-{month_key[1]:02d} highest -> Norris {label}]",
-                ))
-            elif rank == 1:
-                # 2nd highest -> Dauphin
-                qb_acct, qb_class, ttype, label = VARIABLE_RANK_PROPERTIES[1]
-                assignments.append(WaterAssignment(
-                    txn_index=idx,
-                    qb_account=qb_acct,
-                    qb_class=qb_class,
-                    transaction_type=ttype,
-                    classified_by=f"water_rank[month {month_key[0]}-{month_key[1]:02d} 2nd -> Dauphin {label}]",
-                ))
-            elif rank == 2 and not has_orianna_recurring:
-                # 3rd highest -> Orianna fallback (only if no $81.49 this month)
-                assignments.append(WaterAssignment(
-                    txn_index=idx,
-                    qb_account="Water Expense",
-                    qb_class="1948 N Orianna St",
-                    transaction_type="Expense",
-                    classified_by=f"water_rank[month {month_key[0]}-{month_key[1]:02d} 3rd -> Orianna fallback (no $81.49 this month)]",
+                    classified_by=f"water_rank[month {month_key[0]}-{month_key[1]:02d} {rank_label} -> {label}]",
                 ))
             else:
-                # Either rank 3+ or rank 2 with $81.49 already present -> review
+                # Beyond configured ranks -> review
                 review_indices.append(idx)
                 reason = "no slot in variable ranking"
-                if rank == 2 and has_orianna_recurring:
-                    reason = "3rd-rank skipped because $81.49 (Orianna recurring) already in month"
                 audit.append(f"  MONTH {month_key}: variable rank {rank+1} ${abs(transactions[idx].amount):.2f} -> review ({reason})")
 
     audit.append(f"Total assigned: {len(assignments)}; flagged for review: {len(review_indices)}")

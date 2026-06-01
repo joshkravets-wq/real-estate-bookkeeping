@@ -696,7 +696,7 @@ def main():
             print("WATER RANKING PASS")
             print("=" * 90)
             from reconcile.water_ranking import assign_water_bills
-            assigns, water_review_idx, audit = assign_water_bills(classified)
+            assigns, water_review_idx, audit = assign_water_bills(classified, rules_module=rules_module)
             for line in audit:
                 print(f"  {line}")
             for a in assigns:

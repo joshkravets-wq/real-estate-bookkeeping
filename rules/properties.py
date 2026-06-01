@@ -93,15 +93,42 @@ PROPERTIES = {
     },
 
     # === Sophia Holdings LLC ===
+    "1934 N 3rd St": {
+        "llc": "Sophia Holdings LLC",
+        "status": "stabilized",
+        "notes": "Rental duplex. Unit A pays outside RentRedi.",
+    },
     "2139 N 7th St": {
         "llc": "Sophia Holdings LLC",
-        "status": "pre-stab",
+        "status": "stabilized",
         "expense_sheet_id": "1vlCXXcTl_NzpCCy5aNTeEA5ldqIncDKoR25pH1p_mLM",
+        "notes": "Rental triplex. Insurance reimbursed by Sophia to G&J Group ($1,973 3/9/26).",
+    },
+    "438 W Susquehanna St": {
+        "llc": "Sophia Holdings LLC",
+        "status": "stabilized",
+        "notes": "Rental duplex.",
     },
     "2143 N Palethorp St": {
         "llc": "Sophia Holdings LLC",
-        "status": "pre-stab",
+        "status": "stabilized",
         "expense_sheet_id": "1jhMJ99CUEGt9_kjZLBs8FUZGQMl0aRDZxrU4J-UuHyk",
+        "notes": "Rental house. 25k mortgage per master inventory.",
+    },
+    "2148 N 3rd St": {
+        "llc": "Sophia Holdings LLC",
+        "status": "pre-stab",
+        "notes": "Vacant lot (RM1 14' x 55').",
+    },
+    "2411 N 3rd St": {
+        "llc": "Sophia Holdings LLC",
+        "status": "pre-stab",
+        "notes": "Vacant lot (RM1 14' x 60').",
+    },
+    "2024 Wilder St": {
+        "llc": "Sophia Holdings LLC",
+        "status": "pre-stab",
+        "notes": "Vacant lot (RSA5 14'x50').",
     },
 
     # === Confirm with Josh ===

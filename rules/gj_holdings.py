@@ -110,6 +110,36 @@ GAS_PECO_SPLIT = [
     "5746 Grays Ave",
 ]
 
+
+# =========================================================
+# WATER RANKING CONFIG (consumed by reconcile/water_ranking.py)
+# =========================================================
+# Fixed-amount rules: amount -> (qb_account, qb_class, type, label)
+# For pre-stab properties: qb_account = property address, no class.
+# For stabilized properties: qb_account = "Water Expense", class = property address.
+WATER_FIXED_RULES = {
+    33.25: ("Water Expense", "314 W Norris St", "Expense", "sprinkler line"),
+    35.05: ("5461 W Berks St", "", "Asset", "5461 W Berks recurring (pre-stab)"),
+    49.23: ("Water Expense", "314 W Norris St", "Expense", "other unit"),
+    81.49: ("Water Expense", "1948 N Orianna St", "Expense", "Orianna recurring"),
+}
+
+# Lots: same amount, alternate chronologically among properties
+WATER_LOT_CONFIG = {
+    "amount": 21.64,
+    "properties": ["2415 N 4th St", "2431 N 3rd St"],
+}
+
+# Variable-rank: rank-1 (highest) -> entry[0], rank-2 (2nd) -> entry[1]
+# Rank-3 (3rd) uses WATER_RANK_FALLBACK below (if WATER_RANK_FALLBACK_SKIP_IF_AMOUNT not seen).
+WATER_VARIABLE_RANK = [
+    ("Water Expense", "314 W Norris St", "Expense", "regular water"),
+    ("Water Expense", "507 W Dauphin St", "Expense", "regular water"),
+]
+WATER_RANK_FALLBACK_SKIP_IF_AMOUNT = 81.49  # if $81.49 (Orianna recurring) present this month, skip rank-3
+WATER_RANK_FALLBACK = ("Water Expense", "1948 N Orianna St", "Expense", "Orianna fallback")
+
+
 BANK_RULES = [
     # =========================================================
     # LOAN PAYMENTS - flagged for split via loan CSV parser
