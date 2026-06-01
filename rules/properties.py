@@ -96,6 +96,7 @@ PROPERTIES = {
     "1934 N 3rd St": {
         "llc": "Sophia Holdings LLC",
         "status": "stabilized",
+        "expense_sheet_id": "1LhECwr8rLI8TazvHVUzCfd_IYSeugK8fnCBm3Ksxy54",
         "notes": "Rental duplex. Unit A pays outside RentRedi.",
     },
     "2139 N 7th St": {
@@ -107,6 +108,7 @@ PROPERTIES = {
     "438 W Susquehanna St": {
         "llc": "Sophia Holdings LLC",
         "status": "stabilized",
+        "expense_sheet_id": "17Vj8a1bAB5ECoAtrhyMGLnp7yn2IRr8LvnYKMXFqIME",
         "notes": "Rental duplex.",
     },
     "2143 N Palethorp St": {
@@ -118,16 +120,19 @@ PROPERTIES = {
     "2148 N 3rd St": {
         "llc": "Sophia Holdings LLC",
         "status": "pre-stab",
+        "expense_sheet_id": "1S7kzFulZoF0qK1XijC_TVnXpWxmGOgZ-WUc7S805mGc",
         "notes": "Vacant lot (RM1 14' x 55').",
     },
     "2411 N 3rd St": {
         "llc": "Sophia Holdings LLC",
         "status": "pre-stab",
+        "expense_sheet_id": "10Q7HPvvdniYzwbOUq2Zds_wRIgL6-0cpZm55e6_PL2Y",
         "notes": "Vacant lot (RM1 14' x 60').",
     },
     "2024 Wilder St": {
         "llc": "Sophia Holdings LLC",
         "status": "pre-stab",
+        "expense_sheet_id": "10p6_ZBq_xQqWwuq2TaaiQfT90tqMbCtTNfQd7jhzB0U",
         "notes": "Vacant lot (RSA5 14'x50').",
     },
 

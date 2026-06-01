@@ -44,14 +44,14 @@ ENTITY = {
 # Property registry
 PROPERTIES = {
     # Stabilized rentals
-    "1934 N 3rd St": {"status": "stabilized", "expense_sheet": None},
+    "1934 N 3rd St": {"status": "stabilized", "expense_sheet": "1LhECwr8rLI8TazvHVUzCfd_IYSeugK8fnCBm3Ksxy54"},
     "2139 N 7th St": {"status": "stabilized", "expense_sheet": "1vlCXXcTl_NzpCCy5aNTeEA5ldqIncDKoR25pH1p_mLM"},
-    "438 W Susquehanna St": {"status": "stabilized", "expense_sheet": None},
+    "438 W Susquehanna St": {"status": "stabilized", "expense_sheet": "17Vj8a1bAB5ECoAtrhyMGLnp7yn2IRr8LvnYKMXFqIME"},
     "2143 N Palethorp St": {"status": "stabilized", "expense_sheet": "1jhMJ99CUEGt9_kjZLBs8FUZGQMl0aRDZxrU4J-UuHyk"},
     # Pre-stab vacant lots
-    "2148 N 3rd St": {"status": "pre-stab", "expense_sheet": None},
-    "2411 N 3rd St": {"status": "pre-stab", "expense_sheet": None},
-    "2024 Wilder St": {"status": "pre-stab", "expense_sheet": None},
+    "2148 N 3rd St": {"status": "pre-stab", "expense_sheet": "1S7kzFulZoF0qK1XijC_TVnXpWxmGOgZ-WUc7S805mGc"},
+    "2411 N 3rd St": {"status": "pre-stab", "expense_sheet": "10Q7HPvvdniYzwbOUq2Zds_wRIgL6-0cpZm55e6_PL2Y"},
+    "2024 Wilder St": {"status": "pre-stab", "expense_sheet": "10p6_ZBq_xQqWwuq2TaaiQfT90tqMbCtTNfQd7jhzB0U"},
 }
 
 # Active loans (Mar 2026 balances confirmed from loan statements)
