@@ -720,6 +720,38 @@ def main():
             print(f"  Review queue: {len(review_items)}")
 
     # =========================================================
+    # 6.6.2b PECO RANKING PASS (Sophia Holdings)
+    # =========================================================
+    if not getattr(args, "no_peco_ranking", False):
+        if any(t.qb_account == "PECO_RANKING" for t in classified):
+            print()
+            print("=" * 90)
+            print("PECO RANKING PASS")
+            print("=" * 90)
+            from reconcile.peco_ranking import assign_peco_bills
+            peco_assigns, peco_review_idx, peco_audit = assign_peco_bills(classified, rules_module=rules_module)
+            for line in peco_audit:
+                print(f"  {line}")
+            for a in peco_assigns:
+                t = classified[a.txn_index]
+                t.qb_account = a.qb_account
+                t.qb_class = a.qb_class
+                t.transaction_type = a.transaction_type
+                t.classified_by = a.classified_by
+            from reconcile.engine import ReviewItem as _ReviewItem
+            for idx in peco_review_idx:
+                t = classified[idx]
+                review_items.append(_ReviewItem(
+                    transaction=t,
+                    reason="PECO bill rank exceeded configured PECO_RANKING_ORDER"
+                ))
+            classified = [t for i, t in enumerate(classified) if i not in set(peco_review_idx)]
+            print()
+            print(f"Updated counts:")
+            print(f"  Classified: {len(classified)}")
+            print(f"  Review queue: {len(review_items)}")
+
+    # =========================================================
     # 6.6.3 GAS / PECO 50/50 SPLIT PASS (GJ Holdings)
     # =========================================================
     if not args.no_gas_peco_split:

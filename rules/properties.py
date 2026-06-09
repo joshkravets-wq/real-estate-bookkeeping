@@ -105,7 +105,7 @@ PROPERTIES = {
         "expense_sheet_id": "1vlCXXcTl_NzpCCy5aNTeEA5ldqIncDKoR25pH1p_mLM",
         "notes": "Rental triplex. Insurance reimbursed by Sophia to G&J Group ($1,973 3/9/26).",
     },
-    "438 W Susquehanna St": {
+    "438 W Susquehanna Ave": {
         "llc": "Sophia Holdings LLC",
         "status": "stabilized",
         "expense_sheet_id": "17Vj8a1bAB5ECoAtrhyMGLnp7yn2IRr8LvnYKMXFqIME",

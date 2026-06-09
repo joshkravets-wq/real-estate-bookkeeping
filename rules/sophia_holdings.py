@@ -46,7 +46,7 @@ PROPERTIES = {
     # Stabilized rentals
     "1934 N 3rd St": {"status": "stabilized", "expense_sheet": "1LhECwr8rLI8TazvHVUzCfd_IYSeugK8fnCBm3Ksxy54"},
     "2139 N 7th St": {"status": "stabilized", "expense_sheet": "1vlCXXcTl_NzpCCy5aNTeEA5ldqIncDKoR25pH1p_mLM"},
-    "438 W Susquehanna St": {"status": "stabilized", "expense_sheet": "17Vj8a1bAB5ECoAtrhyMGLnp7yn2IRr8LvnYKMXFqIME"},
+    "438 W Susquehanna Ave": {"status": "stabilized", "expense_sheet": "17Vj8a1bAB5ECoAtrhyMGLnp7yn2IRr8LvnYKMXFqIME"},
     "2143 N Palethorp St": {"status": "stabilized", "expense_sheet": "1jhMJ99CUEGt9_kjZLBs8FUZGQMl0aRDZxrU4J-UuHyk"},
     # Pre-stab vacant lots
     "2148 N 3rd St": {"status": "pre-stab", "expense_sheet": "1S7kzFulZoF0qK1XijC_TVnXpWxmGOgZ-WUc7S805mGc"},
@@ -75,7 +75,7 @@ LOANS = {
         "is_stabilized": True,
     },
     "9001227499": {
-        "property": "438 W Susquehanna St",
+        "property": "438 W Susquehanna Ave",
         "rate": None,
         "monthly_total": 2139.58,
         "servicer": "PCB",
@@ -93,7 +93,7 @@ LOANS = {
 WATER_FIXED_RULES = {
     21.04: ("2411 N 3rd St", "", "Asset", "2411 N 3rd recurring (pre-stab vacant lot)"),
     35.05: ("Water Expense", "2143 N Palethorp St", "Expense", "2143 Palethorp recurring (subject to change)"),
-    106.78: ("Water Expense", "438 W Susquehanna St", "Expense", "438 W Susquehanna recurring (subject to change)"),
+    106.78: ("Water Expense", "438 W Susquehanna Ave", "Expense", "438 W Susquehanna recurring (subject to change)"),
 }
 
 # LIST of lot-style alternating groups (same amount, chronologically alternating across properties)
@@ -108,13 +108,23 @@ WATER_LOT_CONFIG = [
 WATER_VARIABLE_RANK = [
     ("Water Expense", "2139 N 7th St", "Expense", "regular water rank-1"),
     ("Water Expense", "1934 N 3rd St", "Expense", "regular water rank-2"),
-    ("Water Expense", "438 W Susquehanna St", "Expense", "regular water rank-3 (backup if Susquehanna fixed amt changes)"),
+    ("Water Expense", "438 W Susquehanna Ave", "Expense", "regular water rank-3 (backup if Susquehanna fixed amt changes)"),
     ("Water Expense", "2143 N Palethorp St", "Expense", "regular water rank-4 (backup if Palethorp fixed amt changes)"),
 ]
 
 # No skip-amount logic for Sophia
 WATER_RANK_FALLBACK_SKIP_IF_AMOUNT = None
-WATER_RANK_FALLBACK = None  # rank-3 already in WATER_VARIABLE_RANK
+WATER_RANK_FALLBACK = None
+
+# =========================================================
+# PECO RANKING CONFIG (consumed by reconcile/peco_ranking.py)
+# =========================================================
+# Rank within month (highest amount first) -> (qb_account, qb_class, type, label)
+PECO_RANKING_ORDER = [
+    ('PECO Expense', '2139 N 7th St', 'Expense', 'rank-1 highest'),
+    ('PECO Expense', '1934 N 3rd St', 'Expense', 'rank-2'),
+    ('PECO Expense', '438 W Susquehanna Ave', 'Expense', 'rank-3'),
+]  # rank-3 already in WATER_VARIABLE_RANK
 
 BANK_RULES = [
     # RentRedi deposits - flagged for RentRedi loader pass
@@ -137,6 +147,18 @@ BANK_RULES = [
         "class": "WATER_RANKING",
         "type": "Mixed",
         "notes": "Water ranking pass assigns property by fixed/lot/rank logic.",
+    },
+
+    # =========================================================
+    # PECO BILLS - flagged for peco_ranking pass
+    # =========================================================
+    {
+        'name': 'PECO bill (resolved by peco ranking pass)',
+        'match': {'description_contains': 'PECO Energy'},
+        'account': 'PECO_RANKING',
+        'class': 'PECO_RANKING',
+        'type': 'Expense',
+        'notes': 'Peco ranking pass assigns by rank within month.',
     },
 
     # =========================================================
