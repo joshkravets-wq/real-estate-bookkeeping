@@ -82,11 +82,21 @@ def assign_water_bills(transactions: list, rules_module=None) -> tuple:
        review_indices: list of txn indices flagged for review,
        audit_log: list of strings)
     """
-    # Read config from rules module, with GJ Holdings defaults
-    fixed_rules = getattr(rules_module, "WATER_FIXED_RULES", None) or FIXED_AMOUNT_RULES
-    lot_cfg_raw = getattr(rules_module, "WATER_LOT_CONFIG", None) or {
-        "amount": LOT_AMOUNT, "properties": LOT_PROPERTIES,
-    }
+    # Read config from rules module.
+    # Backward compat: if an attribute is ABSENT from the rules module, fall back
+    # to the legacy GJ Holdings hardcoded defaults. If the attribute is PRESENT
+    # but empty ({} / [] / None), respect the emptiness — an explicitly empty
+    # config means "this entity has no such rules", NOT "use another entity's".
+    _MISSING = object()
+
+    _fixed = getattr(rules_module, "WATER_FIXED_RULES", _MISSING)
+    fixed_rules = FIXED_AMOUNT_RULES if _fixed is _MISSING else (_fixed or {})
+
+    _lot = getattr(rules_module, "WATER_LOT_CONFIG", _MISSING)
+    if _lot is _MISSING:
+        lot_cfg_raw = {"amount": LOT_AMOUNT, "properties": LOT_PROPERTIES}
+    else:
+        lot_cfg_raw = _lot or []
     # Normalize: WATER_LOT_CONFIG can be a single dict OR a list of dicts.
     # Each entry: {"amount": float, "properties": [str, ...], "type": "Asset"|"Expense" (optional)}
     if isinstance(lot_cfg_raw, dict):
@@ -94,11 +104,16 @@ def assign_water_bills(transactions: list, rules_module=None) -> tuple:
     else:
         lot_configs = list(lot_cfg_raw)
 
-    variable_rank = getattr(rules_module, "WATER_VARIABLE_RANK", None) or VARIABLE_RANK_PROPERTIES
+    _rank = getattr(rules_module, "WATER_VARIABLE_RANK", _MISSING)
+    variable_rank = VARIABLE_RANK_PROPERTIES if _rank is _MISSING else (_rank or [])
+
     fallback_skip_amt = getattr(rules_module, "WATER_RANK_FALLBACK_SKIP_IF_AMOUNT", 81.49)
-    fallback_props = getattr(rules_module, "WATER_RANK_FALLBACK", None) or (
-        "Water Expense", "1948 N Orianna St", "Expense", "Orianna fallback",
-    )
+
+    _fb = getattr(rules_module, "WATER_RANK_FALLBACK", _MISSING)
+    if _fb is _MISSING:
+        fallback_props = ("Water Expense", "1948 N Orianna St", "Expense", "Orianna fallback")
+    else:
+        fallback_props = _fb  # may be None = explicitly no fallback
 
     audit = []
 
