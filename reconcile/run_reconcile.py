@@ -37,6 +37,9 @@ from reconcile.loaders.manual_overrides import (
     find_override,
     get_off_bank_journals,
 )
+
+import re as _prop_re_mod
+_PROP_RE = _prop_re_mod.compile(r'^\d+\s')
 from rules.properties_registry import ACTIVE_RENO_FILE_IDS, MANUAL_OVERRIDES_FILE_ID
 from reconcile.output import write_engine_output
 
@@ -276,8 +279,15 @@ def main():
                 if ov:
                     txn.qb_account = ov.qb_account
                     txn.qb_class = ov.qb_class
+                    if getattr(ov, 'payee', ''):
+                        txn.payee = ov.payee
                     _acct_type = account_type(ov.qb_account)
                     txn.transaction_type = _type_map.get(_acct_type, "Expense")
+                    # Property-address accounts (e.g. '2110 E Cambria St') are
+                    # capitalized asset accounts, not expenses. account_type()
+                    # only knows registered accounts, so patch the fallback.
+                    if txn.transaction_type == "Expense" and _PROP_RE.match(ov.qb_account or ""):
+                        txn.transaction_type = "Asset"
                     txn.classified_by = (
                         f"manual_override[row {ov.row_num}]: "
                         f"{ov.notes[:50]}" if ov.notes else
@@ -292,8 +302,15 @@ def main():
                 if ov:
                     txn.qb_account = ov.qb_account
                     txn.qb_class = ov.qb_class
+                    if getattr(ov, 'payee', ''):
+                        txn.payee = ov.payee
                     _acct_type = account_type(ov.qb_account)
                     txn.transaction_type = _type_map.get(_acct_type, "Expense")
+                    # Property-address accounts (e.g. '2110 E Cambria St') are
+                    # capitalized asset accounts, not expenses. account_type()
+                    # only knows registered accounts, so patch the fallback.
+                    if txn.transaction_type == "Expense" and _PROP_RE.match(ov.qb_account or ""):
+                        txn.transaction_type = "Asset"
                     txn.classified_by = (
                         f"manual_override[row {ov.row_num}]: "
                         f"{ov.notes[:50]}" if ov.notes else

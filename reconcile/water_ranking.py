@@ -118,14 +118,12 @@ def assign_water_bills(transactions: list, rules_module=None) -> tuple:
     audit = []
 
     # Step 1: Find water transactions
+    # Only process transactions still carrying the WATER_RANKING marker.
+    # Do NOT re-capture by description: items already classified by an earlier
+    # pass (e.g. Manual Overrides) must keep their classification. MO is authoritative.
     water_indices = []
     for i, t in enumerate(transactions):
-        is_water = False
         if getattr(t, "qb_account", None) == "WATER_RANKING":
-            is_water = True
-        elif "CITYOFPHILA" in (t.description or ""):
-            is_water = True
-        if is_water:
             water_indices.append(i)
 
     if not water_indices:
@@ -188,9 +186,10 @@ def assign_water_bills(transactions: list, rules_module=None) -> tuple:
         # Pre-stab (default): qb_account = property name, no class
         # Sort by date ascending
         lot_indices_sorted = sorted(lot_indices, key=lambda i: transactions[i].date)
+        lot_wrap = lot_entry.get("wrap", False)
         for j, idx in enumerate(lot_indices_sorted):
-            if j < len(lot_properties_value):
-                prop = lot_properties_value[j]
+            if lot_wrap or j < len(lot_properties_value):
+                prop = lot_properties_value[j % len(lot_properties_value)]
                 if lot_type == "Expense":
                     qb_acct = "Water Expense"
                     qb_class = prop

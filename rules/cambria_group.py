@@ -46,20 +46,30 @@ ENTITY = {
 # Property registry
 PROPERTIES = {
     # Stabilized rental
-    "2563 E Elkhart St": {"status": "stabilized", "expense_sheet": "1V_1L2cAwlahesTmMe_JVudb31ssixzQ_5rE-rpAsjSA"},
+    "2563 E Elkhart St": {"status": "pre-stab", "expense_sheet": "1V_1L2cAwlahesTmMe_JVudb31ssixzQ_5rE-rpAsjSA"},
+    # Sold 5/2026; owned during Q1. Not in master inventory (inventory post-dates sale).
+    "3435 Mercer St": {"status": "pre-stab", "expense_sheet": None},
     # Pre-stab vacant lots
-    "2110 E Cambria St": {"status": "pre-stab", "expense_sheet": None},
-    "2119 N Hope St": {"status": "pre-stab", "expense_sheet": None},
-    "1430 N Marston St": {"status": "pre-stab", "expense_sheet": None},
-    "2505 Jefferson St": {"status": "pre-stab", "expense_sheet": None},
-    "542 Edgley St": {"status": "pre-stab", "expense_sheet": None},
-    "946 N 43rd St": {"status": "pre-stab", "expense_sheet": None},
+    "2110 E Cambria St": {"status": "pre-stab", "expense_sheet": "1zhbBLXMb1s--7MuuZAx8cAVSZfFW6aIMBiVZSFCB1Bk"},
+    "2119 N Hope St": {"status": "pre-stab", "expense_sheet": "1poC6x7-QDnKucUSnpoo1pzGNXAL5YNaMMown18a_npc"},
+    "1430 N Marston St": {"status": "pre-stab", "expense_sheet": "1xnFPzEnZtU6XhCWqNwN-xC3k_V02_8HrpLsWABa3pN4"},
+    "2505 Jefferson St": {"status": "pre-stab", "expense_sheet": "1U95hZKsg6mbxsfufnD8oMWQUExQBZ9-48f6cfvUAGms"},
+    "542 Edgley St": {"status": "pre-stab", "expense_sheet": "1_Vu2Jl-ENx9sAqHK-J-qmjNOWKdzM_JJ1050BpQlgzU"},
+    "946 N 43rd St": {"status": "pre-stab", "expense_sheet": "1JJ6Mu7xgZtB-rfJvNApZp1Dm3YUNlH36REEuETpPkEU"},
 }
 
 # No loans
 LOANS = {}
 
 BANK_RULES = [
+    # Stuck NSF fees (no reversal within 3 days) -> Bank Service Charges
+    {
+        "name": "NSF fee (stuck)",
+        "match": {"description_contains": "Insufficient Funds Charge"},
+        "account": "Bank Service Charges",
+        "class": "",
+        "type": "Expense",
+    },
     # RentRedi deposits - flagged for RentRedi loader pass
     {
         "name": "RentRedi rental deposit",
@@ -114,10 +124,13 @@ RETAIL_VENDOR_PATTERNS = [
 
 # Water config: TBD after first engine run shows the actual bill amounts.
 # Vacant lots likely have $21.64-style recurring; 2563 E Elkhart variable.
-WATER_FIXED_RULES = {}
-WATER_LOT_CONFIG = []
-WATER_VARIABLE_RANK = [
-    ("Water Expense", "2563 E Elkhart St", "Expense", "rank-1 highest (only stabilized property)"),
+WATER_FIXED_RULES = {
+    21.04: ("2110 E Cambria St", "", "Asset", "2110 E Cambria recurring stormwater (pre-stab)"),
+}
+WATER_LOT_CONFIG = [
+    # wrap=True: months with more bills than properties keep alternating (3rd bill -> property[0], etc.)
+    {"amount": 21.64, "properties": ["1430 N Marston St", "2119 N Hope St"], "type": "Asset", "wrap": True},
 ]
+WATER_VARIABLE_RANK = []  # no variable rank; unmatched water bills go to review
 WATER_RANK_FALLBACK_SKIP_IF_AMOUNT = None
 WATER_RANK_FALLBACK = None

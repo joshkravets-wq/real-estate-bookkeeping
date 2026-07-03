@@ -40,6 +40,7 @@ class Override:
     approved_date: Optional[date]
     notes: str
     is_off_bank_journal: bool = False
+    payee: str = ""
 
 
 def _parse_date(value):
@@ -97,6 +98,7 @@ def load_overrides(file_id):
     # Optional: off-bank journal column. When truthy, the row emits unconditionally
     # as a synthetic classified transaction (no bank match required).
     off_bank_col = col.get("off-bank journal")
+    payee_col = col.get("payee")
 
     for row_num, row in enumerate(rows[1:], start=2):
         # Skip empty rows
@@ -122,6 +124,10 @@ def load_overrides(file_id):
             continue
 
         # Detect off-bank journal flag (truthy string in the optional column)
+        payee_val = ""
+        if payee_col is not None and payee_col < len(row):
+            payee_val = str(row[payee_col] or "").strip()
+
         is_off_bank = False
         if off_bank_col is not None and off_bank_col < len(row):
             raw_flag = row[off_bank_col]
@@ -141,6 +147,7 @@ def load_overrides(file_id):
             approved_date=approved_date,
             notes=notes,
             is_off_bank_journal=is_off_bank,
+            payee=payee_val,
         ))
 
     return overrides
