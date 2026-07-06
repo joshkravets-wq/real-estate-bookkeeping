@@ -136,9 +136,9 @@ PROPERTIES = {
         "notes": "Vacant lot (RSA5 14'x50').",
     },
 
-    # === Confirm with Josh ===
+    # === VJ Assets LLC ===
     "2672 Braddock Ave": {
-        "llc": None,
+        "llc": "VJ Assets LLC",
         "status": "pre-stab",
         "expense_sheet_id": None,
         "notes": "Engineer Reserve + L&I permits + city fees recorded against this property in Q1 2026. Confirm owning LLC.",
