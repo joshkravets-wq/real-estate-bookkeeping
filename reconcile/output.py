@@ -118,7 +118,7 @@ def build_vendor_tracker(transactions, checks_csv=None, vendor_aliases=None, ret
         pl = payee_str.lower()
         return any(pat in pl for pat in retail_patterns_lower)
 
-    VENDOR_TRACKED_ACCOUNTS = {"Subcontractors Expense", "Construction Costs"}
+    VENDOR_TRACKED_ACCOUNTS = {"Subcontractors Expense", "Construction Costs", "Management Fees"}
 
     def _looks_like_property(name):
         """Detect if qb_account name looks like a property address (e.g., '5461 W Berks St')."""
@@ -217,7 +217,7 @@ def build_vendor_tracker(transactions, checks_csv=None, vendor_aliases=None, ret
     return rows
 
 
-def build_summary(transactions):
+def build_summary(transactions, loan_ending_balances=None):
     """Build the reconciliation summary section appended to the Processor CSV.
 
     Auto-detects entity shape from transaction data:
@@ -257,7 +257,8 @@ def build_summary(transactions):
 
     INCOME_KW = ["Income", "Rental Income"]
     EXPENSE_KW = ["Expense", "Service Charges", "Taxes -", "Water", "Insurance",
-                  "Gas Expense", "PECO Expense", "Professional Fees"]
+                  "Gas Expense", "PECO Expense", "Professional Fees",
+                  "Management Fees", "Licenses & Permits"]
     LIABILITY_KW = ["Loan", "Chase Ink", "AMEX", "Construction Loan"]
     BANK_KW = ["PCB", "TD ", "Penn Community"]
     EQUITY_KW = ["Capital:", "Capital ", "Contribution", "Draw", "Equity"]
@@ -343,8 +344,16 @@ def build_summary(transactions):
             pl = pl_by_class[klass]
             net = pl["income"] + pl["expense"]
             rows.append(["", "", klass, "", "", "", "", "", "", klass])
+            # Itemize income accounts for this property
             rows.append(["", "", "  Income", "", format_amount(pl["income"]), "", "", "", "", klass])
+            for (acct, kls), amt in sorted(class_totals.items(), key=lambda x: -abs(x[1])):
+                if kls == klass and acct in income_accounts and amt != 0:
+                    rows.append(["", "", f"    {acct}", "", format_amount(amt), "", "", "", "", klass])
+            # Itemize expense accounts for this property
             rows.append(["", "", "  Expenses", "", format_amount(pl["expense"]), "", "", "", "", klass])
+            for (acct, kls), amt in sorted(class_totals.items(), key=lambda x: -abs(x[1])):
+                if kls == klass and (acct in expense_accounts or acct in cogs_accounts) and amt != 0:
+                    rows.append(["", "", f"    {acct}", "", format_amount(amt), "", "", "", "", klass])
             rows.append(["", "", "  Net P&L", "", format_amount(net), "", "", "", "", klass])
         rows.append([])
 
@@ -366,9 +375,15 @@ def build_summary(transactions):
     if liability_accounts:
         rows.append(["", "LIABILITY CHANGES", "", "", "", "", "", "", "", ""])
         for acct in sorted(liability_accounts):
+            _bal_note = ""
+            if loan_ending_balances:
+                for _ln, _bal in loan_ending_balances.items():
+                    if _ln in acct:
+                        _bal_note = f"ending balance per servicer: {format_amount(_bal)}"
+                        break
             rows.append(["", "", acct, "",
                          format_amount(account_totals[acct]),
-                         f"({account_counts[acct]} txns)", "", "", "", ""])
+                         f"({account_counts[acct]} txns)", _bal_note, "", "", ""])
         rows.append([])
 
     # ---- INTERCOMPANY ----
@@ -443,14 +458,15 @@ def filename_for(entity_name, period):
 
 def write_engine_output(classified_transactions, review_items, entity_name, period,
                         output_dir="./output", checks_csv=None,
-                        vendor_tracker_transactions=None, retail_patterns=None):
+                        vendor_tracker_transactions=None, retail_patterns=None,
+                        loan_ending_balances=None):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     csv_filename = filename_for(entity_name, period)
     csv_path = output_dir / csv_filename
     vendor_txns = vendor_tracker_transactions if vendor_tracker_transactions is not None else classified_transactions
     vendor_rows = build_vendor_tracker(vendor_txns, checks_csv=checks_csv, retail_patterns=retail_patterns)
-    summary_rows = build_summary(classified_transactions)
+    summary_rows = build_summary(classified_transactions, loan_ending_balances=loan_ending_balances)
     write_csv(classified_transactions, str(csv_path),
               vendor_rows=vendor_rows, summary_rows=summary_rows)
     paths = {"csv": str(csv_path)}

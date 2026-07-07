@@ -309,3 +309,28 @@ if __name__ == "__main__":
         total_esc = sum(s.amount for s in splits if s.component == "escrow")
         print(f"  TOTALS: prin={total_prin:.2f}, int={total_int:.2f}, escrow={total_esc:.2f}")
         print()
+
+
+def get_loan_ending_balances(loans_config, pcb_dir):
+    """Read each loan CSV's most recent Balance (first data row; PCB exports
+    are reverse-chronological). Returns {loan_num: float_balance}."""
+    import csv as _csv
+    balances = {}
+    for loan_num, cfg in loans_config.items():
+        csv_name = cfg.get("loan_csv")
+        if not csv_name:
+            continue
+        path = pcb_dir / csv_name
+        if not path.exists():
+            continue
+        try:
+            with open(path, newline="", encoding="utf-8-sig") as f:
+                rows = list(_csv.reader(f))
+            header_i = next(i for i, r in enumerate(rows) if r and r[0].strip().startswith("Transaction Number"))
+            for r in rows[header_i + 1:]:
+                if len(r) > 6 and r[6].strip():
+                    balances[loan_num] = float(r[6].replace(",", ""))
+                    break
+        except Exception:
+            continue
+    return balances

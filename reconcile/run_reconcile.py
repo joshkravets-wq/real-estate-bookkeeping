@@ -613,6 +613,7 @@ def main():
     # =========================================================
     # 6.6.1 LOAN PAYMENTS SPLIT PASS (GJ Holdings)
     # =========================================================
+    loan_ending_balances = {}
     if not args.no_loan_splits:
         loans_config = getattr(rules_module, "LOANS", None)
         if loans_config:
@@ -624,6 +625,8 @@ def main():
                 from reconcile.loaders.loan_payments import load_all_loans
                 from pathlib import Path as _Path
                 loan_splits_by_loan = load_all_loans(loans_config, _Path(args.pcb_dir))
+                from reconcile.loaders.loan_payments import get_loan_ending_balances
+                loan_ending_balances = get_loan_ending_balances(loans_config, _Path(args.pcb_dir))
                 splits_index = {}
                 for loan_num, splits in loan_splits_by_loan.items():
                     for s in splits:
@@ -646,6 +649,13 @@ def main():
                             splits = splits_index.get((loan_num, txn.date + _td(days=delta)), [])
                             if splits:
                                 break
+                    # Conservation guard: splits must sum to the bank txn amount.
+                    # Otherwise (e.g. a $38 loan fee sharing a date with a full
+                    # payment) do NOT split — flag instead.
+                    if splits:
+                        split_total = float(sum(abs(s.amount) for s in splits))
+                        if abs(split_total - abs(txn.amount)) > 1.00:
+                            splits = []
                     if not splits:
                         txn.qb_account = "ASK"
                         txn.classified_by = f"LOAN_NO_MATCH[loan {loan_num} on {txn.date}]"
@@ -847,8 +857,15 @@ def main():
                         if t.qb_account == "RENTREDI_SPLIT":
                             d = find_deposit_for_bank_txn(deposits, t.date, _Decimal(str(t.amount)))
                             if not d:
-                                t.qb_account = "ASK"
-                                t.classified_by = f"RENTREDI_NO_MATCH"
+                                _nr_default = getattr(rules_module, "RENTREDI_NO_MATCH_DEFAULT", None)
+                                if _nr_default:
+                                    t.qb_account = _nr_default[0]
+                                    t.qb_class = _nr_default[1]
+                                    t.transaction_type = "Income"
+                                    t.classified_by = f"RENTREDI_NO_MATCH_DEFAULT[{_nr_default[1]}]"
+                                else:
+                                    t.qb_account = "ASK"
+                                    t.classified_by = f"RENTREDI_NO_MATCH"
                                 new_classified.append(t)
                                 unmatched += 1
                                 continue
@@ -1127,6 +1144,7 @@ def main():
         review_items=review_items,
         entity_name=rules_module.ENTITY.get("name", args.entity),
         period=args.period,
+        loan_ending_balances=loan_ending_balances,
         output_dir=args.output_dir,
         checks_csv=None,
         vendor_tracker_transactions=pre_distribution_snapshot,
