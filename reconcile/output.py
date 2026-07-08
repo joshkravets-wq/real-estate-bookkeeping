@@ -258,7 +258,7 @@ def build_summary(transactions, loan_ending_balances=None):
     INCOME_KW = ["Income", "Rental Income"]
     EXPENSE_KW = ["Expense", "Service Charges", "Taxes -", "Water", "Insurance",
                   "Gas Expense", "PECO Expense", "Professional Fees",
-                  "Management Fees", "Licenses & Permits"]
+                  "Management Fees", "Licenses & Permits", "Repairs & Maintenance"]
     LIABILITY_KW = ["Loan", "Chase Ink", "AMEX", "Construction Loan"]
     BANK_KW = ["PCB", "TD ", "Penn Community"]
     EQUITY_KW = ["Capital:", "Capital ", "Contribution", "Draw", "Equity"]
