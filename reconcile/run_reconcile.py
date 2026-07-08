@@ -329,6 +329,10 @@ def main():
             # Emit off-bank journal rows as synthetic classified transactions.
             # These have no bank counterpart (e.g., sale-clearing journals).
             off_bank_journals = get_off_bank_journals(overrides)
+            # Entity filter: the universal MO sheet holds all entities' journals.
+            # Only emit rows whose Account matches this entity's bank accounts.
+            _entity_accts = set(rules_module.ENTITY.get("bank_accounts", []))
+            off_bank_journals = [ov for ov in off_bank_journals if ov.account in _entity_accts]
             if off_bank_journals:
                 from reconcile.engine import Transaction as _Transaction
                 emitted = 0
