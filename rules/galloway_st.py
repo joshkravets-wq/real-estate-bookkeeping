@@ -40,6 +40,13 @@ LOANS = {}
 
 BANK_RULES = [
     {
+        "name": "Steven Kravets private loan payment (recurring $720 check)",
+        "match": {"description_contains": "Check", "amount_equals": 720.00},
+        "account": "Loan from Steven Kravets",
+        "class": "",
+        "type": "Liability",
+    },
+    {
         "name": "NSF fee (stuck)",
         "match": {"description_contains": "Insufficient Funds Charge"},
         "account": "Bank Service Charges",

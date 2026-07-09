@@ -53,6 +53,12 @@ BANK_CREDITS_DEBITS_FILE_ID = "1l5ujV9j5EKd32_cHHHToCzDO-F1nXDh2"
 # QB accounts the engine recognizes. Must mirror QB chart of accounts exactly.
 # Adding a new one? Update both this and (where needed) rules/<entity>.py.
 KNOWN_ACCOUNTS = {
+    "Management Fee Income": {"type": "income", "takes_class": False},
+    "Capital One Card Expense": {"type": "expense", "takes_class": False},
+    "Chase Card Expense": {"type": "expense", "takes_class": False},
+    "Health Insurance Expense": {"type": "expense", "takes_class": False},
+    "Telephone Expense": {"type": "expense", "takes_class": False},
+    "Taxes - Federal": {"type": "expense", "takes_class": False},
     "Transfer from closed TD account": {"type": "bank", "takes_class": False},
     "ASK": {"type": "asset", "takes_class": False},  # provisional/unidentified — resolve before year-end
     "Repairs & Maintenance": {"type": "expense", "takes_class": True},

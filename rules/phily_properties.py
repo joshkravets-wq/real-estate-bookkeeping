@@ -53,6 +53,13 @@ LOANS = {
 
 BANK_RULES = [
     {
+        "name": "Steven Kravets private mortgage payment (recurring $550 check)",
+        "match": {"description_contains": "CHECK", "amount_equals": 550.00},
+        "account": "Loan from Steven Kravets",
+        "class": "",
+        "type": "Liability",
+    },
+    {
         "name": "Samuel Foschini rent (2210 Amber unit, outside RentRedi)",
         "match": {"description_contains": "SAMUEL FOSCHINI"},
         "account": "Rental Income",
