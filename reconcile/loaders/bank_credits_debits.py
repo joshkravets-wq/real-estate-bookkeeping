@@ -53,6 +53,7 @@ BANK_CREDITS_DEBITS_FILE_ID = "1l5ujV9j5EKd32_cHHHToCzDO-F1nXDh2"
 # QB accounts the engine recognizes. Must mirror QB chart of accounts exactly.
 # Adding a new one? Update both this and (where needed) rules/<entity>.py.
 KNOWN_ACCOUNTS = {
+    "Security Deposits Held": {"type": "liability", "takes_class": False},
     "Management Fee Income": {"type": "income", "takes_class": False},
     "Capital One Card Expense": {"type": "expense", "takes_class": False},
     "Chase Card Expense": {"type": "expense", "takes_class": False},
