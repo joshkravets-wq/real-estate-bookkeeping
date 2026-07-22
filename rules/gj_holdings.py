@@ -66,7 +66,7 @@ LOANS = {
         "rate": 4.350,
         "monthly_total": 2011.09,
         "servicer": "PCB",
-        "loan_csv": "loan 8251 jan-march.csv",
+        "loan_csv": "loan 8251 april-june.csv",
         "format": "pcb",
         "is_stabilized": True,
     },
@@ -75,7 +75,7 @@ LOANS = {
         "rate": 6.200,
         "monthly_total": 1125.60,
         "servicer": "PCB",
-        "loan_csv": "loan 9048 jan-march.csv",
+        "loan_csv": "loan 9048 april-june.csv",
         "format": "pcb",
         "is_stabilized": True,
     },
@@ -84,7 +84,7 @@ LOANS = {
         "rate": 5.900,
         "monthly_total": 1674.72,
         "servicer": "Fay",
-        "loan_csv": "507 W Dauphin Loan History jan-march.csv",
+        "loan_csv": "507 W Dauphin Loan History april-june.csv",
         "format": "fay",
         "is_stabilized": True,
     },
@@ -128,6 +128,7 @@ WATER_FIXED_RULES = {
 WATER_LOT_CONFIG = {
     "amount": 21.64,
     "properties": ["2415 N 4th St", "2431 N 3rd St"],
+    "wrap": True,  # months can have >2 lot bills (e.g. next cycle billed on the 30th)
 }
 
 # Variable-rank: rank-1 (highest) -> entry[0], rank-2 (2nd) -> entry[1]
@@ -141,6 +142,13 @@ WATER_RANK_FALLBACK = ("Water Expense", "1948 N Orianna St", "Expense", "Orianna
 
 
 BANK_RULES = [
+    {
+        "name": "HomeServe USA repair plan - 507 W Dauphin St (per Josh, Jul 2026)",
+        "match": {"description_contains": "HOMESERVE"},
+        "account": "Repairs & Maintenance",
+        "class": "507 W Dauphin St",
+        "type": "Expense",
+    },
     # =========================================================
     # LOAN PAYMENTS - flagged for split via loan CSV parser
     # =========================================================

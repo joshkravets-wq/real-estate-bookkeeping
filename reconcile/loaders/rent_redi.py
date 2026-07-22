@@ -63,12 +63,17 @@ def _clean_amount(raw) -> Optional[Decimal]:
     s = str(raw).strip()
     if not s:
         return None
+    # Parenthesized amounts are negative: "($646.00)" -> -646.00
+    negative = s.startswith("(") and s.endswith(")")
+    if negative:
+        s = s[1:-1]
     # Strip $, commas, whitespace
     s = s.replace("$", "").replace(",", "").strip()
     if not s:
         return None
     try:
-        return Decimal(s)
+        d = Decimal(s)
+        return -d if negative else d
     except Exception:
         return None
 
@@ -156,6 +161,24 @@ def load_rentredi_deposits(csv_path, bank_suffix: str) -> list:
 
     # Filter out deposits where total is 0 (shouldn't happen for legit deposits)
     deposits = [d for d in deposits_by_sweep.values() if d.total > 0]
+
+    # Balancing line: when itemized rents don't sum to the sweep total
+    # (RentRedi processor fees on reversals aren't itemized), add a small
+    # adjustment line so split rows conserve money vs the bank deposit.
+    for d in deposits:
+        if not d.rents:
+            continue
+        diff = d.total - sum(r.amount for r in d.rents)
+        if diff != 0 and abs(diff) <= Decimal("25"):
+            anchor = max(d.rents, key=lambda r: abs(r.amount))
+            d.rents.append(RentLineItem(
+                amount=diff,
+                property=anchor.property,
+                unit=anchor.unit,
+                tenant=anchor.tenant,
+                rent_date=d.deposit_date,
+                description="RentRedi fee/adjustment",
+            ))
 
     # Sort by deposit_date
     deposits.sort(key=lambda d: d.deposit_date)

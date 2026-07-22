@@ -126,6 +126,11 @@ def main():
         action="store_true",
         help="Distribute AMEX autopay totals across properties using Chase ratios. Use when AMEX statements are not available (e.g., card cancelled).",
     )
+    parser.add_argument(
+        "--rentredi-csv",
+        default=None,
+        help="Path to the RentRedi deposits CSV for this period. Defaults to '<pcb-dir>/../Rent Redi Deposits Jan-march.csv' (legacy Q1 name).",
+    )
     args = parser.parse_args()
 
     # 1. Load and pair PCB transactions
@@ -844,7 +849,10 @@ def main():
                 print("RENTREDI SPLIT PASS")
                 print("=" * 90)
                 from pathlib import Path as _Path
-                rentredi_path = _Path(args.pcb_dir).parent / "Rent Redi Deposits Jan-march.csv"
+                if args.rentredi_csv:
+                    rentredi_path = _Path(args.rentredi_csv)
+                else:
+                    rentredi_path = _Path(args.pcb_dir).parent / "Rent Redi Deposits Jan-march.csv"
                 if not rentredi_path.exists():
                     print(f"  WARNING: RentRedi CSV not found at {rentredi_path}")
                 else:

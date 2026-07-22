@@ -46,10 +46,22 @@ class DriveAuthError(Exception):
     pass
 
 
+CACHE_DIR = CREDS_DIR / "cache"
+
+
 class DriveClient:
     def __init__(self, token_file: Optional[Path] = None):
         self.token_file = token_file or TOKEN_FILE
+        self.offline = False
         if not self.token_file.exists():
+            # Offline-cache mode: if credentials/cache/<file_id>.xlsx files
+            # exist (pre-downloaded by another Drive-authorized channel),
+            # serve spreadsheets from there instead of the live API.
+            if CACHE_DIR.is_dir() and any(CACHE_DIR.glob("*.xlsx")):
+                self.offline = True
+                self.creds = None
+                self.service = None
+                return
             raise DriveAuthError(
                 f"Missing {self.token_file}. Run credentials/authorize.py first."
             )
@@ -65,6 +77,19 @@ class DriveClient:
 
     def get_metadata(self, file_id: str) -> dict:
         """Fetch basic metadata for a file. Useful to check mime type before download."""
+        if self.offline:
+            path = CACHE_DIR / f"{file_id}.xlsx"
+            if not path.exists():
+                raise FileNotFoundError(
+                    f"Offline cache miss: {path}. Pre-download this sheet into credentials/cache/."
+                )
+            return {
+                "id": file_id,
+                "name": path.name,
+                "mimeType": XLSX_MIME,
+                "size": str(path.stat().st_size),
+                "modifiedTime": None,
+            }
         return self.service.files().get(
             fileId=file_id,
             fields="id,name,mimeType,size,modifiedTime",
@@ -98,6 +123,14 @@ class DriveClient:
         Caller doesn't need to know the type. We check metadata, download
         in the correct mode, and parse.
         """
+        if self.offline:
+            path = CACHE_DIR / f"{file_id}.xlsx"
+            if not path.exists():
+                raise FileNotFoundError(
+                    f"Offline cache miss: {path}. Pre-download this sheet into credentials/cache/."
+                )
+            return load_workbook(str(path), data_only=True)
+
         meta = self.get_metadata(file_id)
         mime = meta["mimeType"]
 
