@@ -169,11 +169,12 @@ CARD_MATCHING = {
     "tier_1_properties": [
         "5461 W Berks St",
         "5746 Grays Ave",
+        "2433 N 6th St",
+        "7338 N 20th St",
         "2563 E Elkhart St",
         "2139 N 7th St",
-        "2143 N Palethorp St",
         "2925 Master St",
-        "2030 N Lawrence St",
+        "2672 Braddock Ave",
     ],
     "search_all_properties_after_tier_1": True,
     "bank_credits_debits_sheet": "1l5ujV9j5EKd32_cHHHToCzDO-F1nXDh2",
@@ -255,7 +256,7 @@ MANUAL_OVERRIDES = [
 
 UNMATCHED_HANDLING = {
     "method": "proportional_distribution",
-    "ask_threshold_amount": 250.00,
+    "ask_threshold_amount": 500.00,
 }
 
 
@@ -267,13 +268,15 @@ UNMATCHED_HANDLING = {
 # Ratios derived from the matched Q1 Chase transactions.
 # Recalculate when Q2/Q3 reconciliations are done.
 
+# Q2 2026 ratios — recomputed from matched Q2 Chase transactions (Jul 2026)
 CHASE_PROPERTY_RATIOS = {
-    "5461 W Berks St":     0.2194,
-    "5746 Grays Ave":      0.4512,
-    "2563 E Elkhart St":   0.2859,
-    "2143 N Palethorp St": 0.0035,
-    "2030 N Lawrence St":  0.0062,
-    "2672 Braddock Ave":   0.0337,
+    "5746 Grays Ave":      0.3759,
+    "2433 N 6th St":       0.2694,
+    "5461 W Berks St":     0.2045,
+    "7338 N 20th St":      0.0710,
+    "2143 N Palethorp St": 0.0440,
+    "2563 E Elkhart St":   0.0343,
+    "2672 Braddock Ave":   0.0009,
 }
 # Sum should be 1.0 (rounding may put it at 0.9999 or 1.0001)
 

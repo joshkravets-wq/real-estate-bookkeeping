@@ -414,7 +414,20 @@ def main():
             ]
             GJ_BANK_PATTERNS = getattr(rules_module, "BANK_CHECK_PATTERNS", DEFAULT_GJ_GROUP_PATTERNS)
 
-            for item in review_items:
+            # Fix (Jul 2026): also give sheet-matching a shot at small items
+            # already flagged for proportional distribution. Sheet-logged small
+            # purchases (e.g. a $156 paint run recorded in the property sheet)
+            # should match precisely instead of being distributed by ratio.
+            class _PoolItem:
+                def __init__(self, txn):
+                    self.transaction = txn
+                    self.reason = ""
+                    self.already_classified = True
+            pool_items = [_PoolItem(t) for t in classified
+                          if getattr(t, "qb_class", None) == "PROPORTIONAL_DISTRIBUTION"]
+
+            for item in review_items + pool_items:
+                _in_pool = getattr(item, "already_classified", False)
                 txn = item.transaction
                 src_acct = (txn.source_account or "").lower()
 
@@ -422,7 +435,8 @@ def main():
                 # Bank deposits (positive amounts) can't pay for property work,
                 # so don't try to match deposits against expense sheets.
                 if txn.amount > 0:
-                    still_review_after_property.append(item)
+                    if not _in_pool:
+                        still_review_after_property.append(item)
                     continue
 
                 # Determine payment method patterns based on transaction source
@@ -434,7 +448,8 @@ def main():
                     use_chase = False
                 else:
                     # Unknown source - skip
-                    still_review_after_property.append(item)
+                    if not _in_pool:
+                        still_review_after_property.append(item)
                     continue
 
                 # Search across all property sheets
@@ -451,7 +466,8 @@ def main():
 
                 if not all_matches:
                     unmatched += 1
-                    still_review_after_property.append(item)
+                    if not _in_pool:
+                        still_review_after_property.append(item)
                     continue
 
                 # Check if all matches are within the same property (still safe to auto-promote)
@@ -523,7 +539,8 @@ def main():
                         f"property_sheet[{prop_name}] row {entry.row_num}: "
                         f"{entry.payee[:30]} {entry.description[:30]}"
                     )
-                    classified.append(txn)
+                    if not _in_pool:
+                        classified.append(txn)
                     promoted += 1
                 else:
                     # Multiple matches across different property sheets
@@ -532,7 +549,8 @@ def main():
                         f"{item.reason} | "
                         f"Property ambiguous: matches in {props_str}"
                     )
-                    still_review_after_property.append(item)
+                    if not _in_pool:
+                        still_review_after_property.append(item)
                     ambiguous += 1
 
             review_items = still_review_after_property
