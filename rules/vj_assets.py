@@ -57,7 +57,7 @@ LOANS = {
         "rate": None,
         "monthly_total": 1073.01,
         "servicer": "PCB",
-        "loan_csv": "Mortgage 1950 N Orianna Jan-March.csv",
+        "loan_csv": "loan 8562 april-june.csv",
         "format": "pcb",
         "is_stabilized": True,
     },

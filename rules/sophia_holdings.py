@@ -61,7 +61,7 @@ LOANS = {
         "rate": None,  # TBD from loan terms
         "monthly_total": 2759.22,
         "servicer": "PCB",
-        "loan_csv": "Loan 2139 N 7th .csv",
+        "loan_csv": "Loan 8635 april-june.csv",
         "format": "pcb",
         "is_stabilized": True,
     },
@@ -70,7 +70,7 @@ LOANS = {
         "rate": None,
         "monthly_total": 2336.58,
         "servicer": "PCB",
-        "loan_csv": "Loan 1934 N 3rd St.csv",
+        "loan_csv": "Loan 8594 april-june.csv",
         "format": "pcb",
         "is_stabilized": True,
     },
@@ -79,7 +79,7 @@ LOANS = {
         "rate": None,
         "monthly_total": 2139.58,
         "servicer": "PCB",
-        "loan_csv": "Loan 438 W Susquehanna.csv",
+        "loan_csv": "Loan 7499 april-june.csv",
         "format": "pcb",
         "is_stabilized": True,
     },
@@ -127,6 +127,13 @@ PECO_RANKING_ORDER = [
 ]  # rank-3 already in WATER_VARIABLE_RANK
 
 BANK_RULES = [
+    {
+        "name": "American Water monthly - 2143 N Palethorp (per Josh, Jul 2026)",
+        "match": {"description_contains": "AMERICAN WATER"},
+        "account": "Water Expense",
+        "class": "2143 N Palethorp St",
+        "type": "Expense",
+    },
     # RentRedi deposits - flagged for RentRedi loader pass
     {
         'name': 'RentRedi rental deposit',
