@@ -47,8 +47,12 @@ ENTITY = {
 PROPERTIES = {
     # Stabilized rental
     "2563 E Elkhart St": {"status": "pre-stab", "expense_sheet": "1V_1L2cAwlahesTmMe_JVudb31ssixzQ_5rE-rpAsjSA"},
-    # Sold 5/2026; owned during Q1. Not in master inventory (inventory post-dates sale).
+    # Sold 5/7/2026 (Choice One Abstract). Q2 2026.
     "3435 Mercer St": {"status": "pre-stab", "expense_sheet": None},
+    # Sold 4/13/2026 (Foundation Title). Q2 2026. Steve fronted most costs (reimbursed via ck #1078).
+    "1920 E Harold St": {"status": "pre-stab", "expense_sheet": None},
+    # Acquired via Bid4Assets sheriff sale, wires 4/16 + 6/1 + 6/12/2026 ($60,235 total).
+    "1629 N Newkirk St": {"status": "pre-stab", "expense_sheet": None},
     # Pre-stab vacant lots
     "2110 E Cambria St": {"status": "pre-stab", "expense_sheet": "1zhbBLXMb1s--7MuuZAx8cAVSZfFW6aIMBiVZSFCB1Bk"},
     "2119 N Hope St": {"status": "pre-stab", "expense_sheet": "1poC6x7-QDnKucUSnpoo1pzGNXAL5YNaMMown18a_npc"},

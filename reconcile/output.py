@@ -136,7 +136,11 @@ def build_vendor_tracker(transactions, checks_csv=None, vendor_aliases=None, ret
             getattr(txn, "transaction_type", "") == "Asset"
             and _looks_like_property(txn.qb_account)
         )
-        if not (in_cogs or in_pre_stab_capture):
+        # A Manual Override row that names an explicit payee is a deliberate
+        # 1099-tracking tag (e.g. accounting fees to Lopez, Teodosio, & Larkin)
+        # regardless of which expense account it hits.
+        has_explicit_payee = bool(getattr(txn, "payee", None)) and txn.amount < 0
+        if not (in_cogs or in_pre_stab_capture or has_explicit_payee):
             continue
         payee = ""
         # Priority: txn.payee (from property pass match) > checks_csv > description parse
@@ -159,6 +163,8 @@ def build_vendor_tracker(transactions, checks_csv=None, vendor_aliases=None, ret
             "check", "deposit", "withdrawal",
             "electronic deposit", "external withdrawal",
             "external deposit", "mobile deposit",
+            "domestic wire", "descriptive withdrawal",
+            "directdebit", "loan #", "loan fees",
         )
         if any(payee_lower.startswith(p) for p in BANK_FALLBACK_PREFIXES):
             continue
@@ -308,6 +314,15 @@ def build_summary(transactions, loan_ending_balances=None):
                      format_amount(account_totals[acct]),
                      f"({account_counts[acct]} txns)", "", "", "", ""])
         has_events = True
+
+    # Payoffs / note receivable clearings (e.g. mortgage held by entity paid off)
+    PAYOFF_KW = ("Payoff", "Mortgage Receivable", "Note Receivable", "Loan Proceeds")
+    for acct in sorted(account_totals.keys()):
+        if any(kw in acct for kw in PAYOFF_KW):
+            rows.append(["", "", f"Payoff/proceeds event: {acct}", "",
+                         format_amount(account_totals[acct]),
+                         f"({account_counts[acct]} txns)", "", "", "", ""])
+            has_events = True
 
     # Large txns (>$100K abs)
     large_txns = []

@@ -91,7 +91,7 @@ LOANS = {
         "rate": 4.580,
         "monthly_total": 2030.82,
         "servicer": "PCB",
-        "loan_csv": "loan 1252 N 18th jan-march.csv",
+        "loan_csv": "loan 1252 N 18th april-june SYNTH.csv",
         "format": "pcb",
         "is_stabilized": True,
     },
@@ -100,7 +100,7 @@ LOANS = {
         "rate": 7.750,
         "monthly_total": None,  # Interest-only, varies monthly
         "servicer": "PCB",
-        "loan_csv": "Construction loan 2925 master jan-march.csv",
+        "loan_csv": "constructin loan 2925 master.csv",
         "format": "pcb",
         "is_stabilized": False,  # pre-stab → capitalize interest
         "interest_only": True,
