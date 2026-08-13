@@ -35,7 +35,7 @@ ENTITY = {
 
 PROPERTIES = {
     "1212 N 27th St": {"status": "stabilized", "expense_sheet": None},
-    "2210 Amber St": {"status": "stabilized", "expense_sheet": None},
+    "2210 Amber St": {"status": "stabilized", "expense_sheet": "1tB3-AcDP25AT_ij5zshiFCftAUAoKtL2b-SUkAd-zrQ"},
     "1010 Fairmount Ave": {"status": "pre-stab", "expense_sheet": None},
 }
 
@@ -45,7 +45,7 @@ LOANS = {
         "rate": None,
         "monthly_total": 1953.89,
         "servicer": "PCB",
-        "loan_csv": "Jan-March Loan 2210 amber.csv",
+        "loan_csv": "amber loan .csv",
         "format": "pcb",
         "is_stabilized": True,
     },
@@ -136,6 +136,7 @@ RETAIL_VENDOR_PATTERNS = [
 # Water config: learn from first run
 WATER_FIXED_RULES = {
     138.85: ("Water Expense", "2210 Amber St", "Expense", "2210 Amber recurring (PCB)"),
+    126.21: ("Water Expense", "2210 Amber St", "Expense", "2210 Amber recurring (PCB, new amount Q2 2026)"),
     33.25: ("Water Expense", "2210 Amber St", "Expense", "2210 Amber fire service line (PCB)"),
     21.64: ("1010 Fairmount Ave", "", "Asset", "1010 Fairmount lot stormwater (TD)"),
 }

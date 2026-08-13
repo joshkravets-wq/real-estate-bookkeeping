@@ -338,6 +338,23 @@ def main():
             # Only emit rows whose Account matches this entity's bank accounts.
             _entity_accts = set(rules_module.ENTITY.get("bank_accounts", []))
             off_bank_journals = [ov for ov in off_bank_journals if ov.account in _entity_accts]
+            # Period filter: only emit journals dated within this run's bank-data
+            # window (expanded to full calendar months). Prevents a prior quarter's
+            # off-bank journals from being re-emitted every subsequent quarter.
+            _bank_dates = [t.date for t in classified if getattr(t, "date", None)]
+            if _bank_dates:
+                import calendar as _cal
+                import datetime as _dt
+                _dmin = min(_bank_dates).replace(day=1)
+                _dmax0 = max(_bank_dates)
+                _dmax = _dt.date(_dmax0.year, _dmax0.month,
+                                 _cal.monthrange(_dmax0.year, _dmax0.month)[1])
+                _skipped_oob = [ov for ov in off_bank_journals
+                                if not (ov.txn_date and _dmin <= ov.txn_date <= _dmax)]
+                off_bank_journals = [ov for ov in off_bank_journals
+                                     if ov.txn_date and _dmin <= ov.txn_date <= _dmax]
+                if _skipped_oob:
+                    print(f"  Off-bank journals outside period skipped: {len(_skipped_oob)}")
             if off_bank_journals:
                 from reconcile.engine import Transaction as _Transaction
                 emitted = 0
